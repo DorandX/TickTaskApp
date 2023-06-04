@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">TickTask</string>
+    <string name="emailDeUsuario">Email</string>
+    <string name="IniciarEnTickTask">¡A por las tareas de hoy!</string>
+    <string name="ClaveDeUsuario">Clave</string>
+    <string name="iniciarSesion">INICIAR</string>
+    <string name="recuperarClave">¿Haz olvidado tu clave?</string>
+    <string name="registrarUsuario">REGISTRARME</string>
+    <string name="nombre">nombre</string>
+    <string name="tuListaDeTareas">¿Estas listo para completar tu Registro?</string>
+    <string name="DescripcionDeTarea">Descripcion</string>
+    <string name="TituloDeTarea">Titulo</string>
+    <string name="DarDeBaja">Eliminar cuenta</string>
+    <string name="CerrarSesion">Cerrar sesion</string>
+    <string name="NombreDeUsuario">Nombre</string>
+    <string name="Email">Email</string>
+    <string name="TelefonoDeUsuario">Teléfono</string>
+    <string name="ApellidoDeUsuario">Apellido</string>
+    <string name="NuevaTarea">Tarea</string>
+    <string name="NombreDeTarea">Nombre</string>
+    <string name="DescripcionDeNuevaTarea">Descripción</string>
+    <string name="FechaDeEntrega">Entrega</string>
+    <string name="PrioridadDeTarea">Prioridad</string>
+    <string name="GuardarTarea">GUARDAR</string>
+    <string name="TituloDeItem">ITEM</string>
+    <string name="EstadoDeTarea">Estado</string>
+    <string name="CambiarClave">Cambiar Clave</string>
+    <string name="RepetirClave">Repetir clave</string>
+    <string name="GuardarClave">ACTUALIZAR</string>
+    <string name="NuevaClaveDeUsuario">Nueva clave</string>
+</resources>

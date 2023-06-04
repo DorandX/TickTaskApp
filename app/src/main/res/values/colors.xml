@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    //Colores Brand
+    <color name="verdecito">#00b760</color>
+    <color name="azulito">#00a5db</color>
+    <color name="gris">#bfc6d1</color>
+    <color name="rojo">#e8112d</color>
+    <color name="rojito">#e5566d</color>
+    <color name="muyazul">#0054a0</color>
+    <color name="muyverde">#215b33</color>
+    <color name="azulin">#9bc4e2</color>
+    <color name="verdecin">#a0e5ce</color>
+    <color name="fusion">#f95e59</color>
+    <color name="moradito">#9e91c6</color>
+</resources>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".vista.Cuenta">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="match_parent"
+            android:layout_height="165dp"
+            android:layout_weight="1"
+            app:srcCompat="@mipmap/ticktask_logo_round" />
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="20dp" />
+        <EditText
+            android:id="@+id/etxNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/NombreDeUsuario"
+            android:inputType="textPersonName"
+            android:minHeight="48dp" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="5dp" />
+
+        <EditText
+            android:id="@+id/etxEmail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/emailDeUsuario"
+            android:inputType="textEmailAddress"
+            android:minHeight="48dp" />
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="5dp" />
+        <EditText
+            android:id="@+id/EdtsClave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/ClaveDeUsuario"
+            android:inputType="textPassword"
+            android:minHeight="48dp" />
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="5dp" />
+        <EditText
+            android:id="@+id/editTextPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/TelefonoDeUsuario"
+            android:inputType="phone"
+            android:minHeight="48dp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/BtnDeBaja"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/rojito"
+                android:drawableEnd="@drawable/vc_logout"
+                android:text="@string/DarDeBaja"
+                android:textColor="@color/white"
+                android:textSize="12dp" />
+
+            <ProgressBar
+                android:id="@+id/CargandoProcesos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/BtnDeCambiarClave"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:backgroundTint="@color/azulito"
+                android:drawableEnd="@drawable/vc_clave"
+                android:text="@string/CambiarClave"
+                android:textColor="@color/white"
+                android:textSize="12dp" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="15dp" />
+
+        <LinearLayout
+            android:id="@+id/ModificarClave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/EdtNuevaClave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/NuevaClaveDeUsuario"
+                android:inputType="textPassword"
+                android:minHeight="48dp" />
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="5dp" />
+            <EditText
+                android:id="@+id/EdtRepetirNuevaClave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/RepetirClave"
+                android:inputType="textPassword"
+                android:minHeight="48dp" />
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="5dp" />
+            <Button
+                android:id="@+id/BtnDeGuardarClave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/verdecito"
+                android:onClick="Inicio"
+                android:text="@string/GuardarClave"
+                android:textStyle="bold"
+                app:cornerRadius="7dp" />
+
+            <ProgressBar
+                android:id="@+id/ProcesandoClave"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+        </LinearLayout>
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="10dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ProgressBar
+                android:id="@+id/CargandoSalida"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/BtnDeSalir"
+                style="@style/AppTheme.FloatingActionButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:contentDescription="@string/CerrarSesion"
+                app:srcCompat="@drawable/vc_exit" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="iniciar_estado_de_tarea">
+        <item>Estado</item>
+        <item>Pendiente</item>
+        <item>En proceso</item>
+        <item>Finalizado</item>
+    </string-array>
+    <string-array name="main_lista_de_prioridad">
+        <item>Baja</item>
+        <item>Moderada</item>
+        <item>Alta</item>
+    </string-array>
+    <string-array name="main_lista_de_orden_de_tareas">
+        <item>Ordenar</item>
+        <item>Por Nombre</item>
+        <item>Por Proyecto</item>
+        <item>Por Estado</item>
+        <item>Por Entrega</item>
+    </string-array>
+</resources>

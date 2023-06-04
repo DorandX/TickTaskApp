@@ -1,0 +1,62 @@
+package com.example.ticktask.manager
+
+import android.app.Activity
+
+import com.example.ticktask.manager.vista.IMaRegistro
+import com.example.ticktask.memoria.GestionDeDatos
+import com.example.ticktask.modelo.MdUsuario
+import com.example.ticktask.vista.viInterfaz.ViDeRegistro
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+class ManagerDeRegistro : IMaRegistro {
+
+    private var vista: ViDeRegistro? = null
+    private var dbManager: GestionDeDatos = GestionDeDatos().getInstance()
+
+    //Metodo para asociar manager con la vista
+    override fun entrarAVista(view: Activity) {
+        this.vista = view as ViDeRegistro
+    }
+
+    //Método para desasociar manager con la vista
+    override fun salirDeVista() {
+        this.vista = null
+    }
+
+    //Verificamos si existe o no el usuario.
+    override suspend fun verificarSiExisteUsuario(uEmail: String, uClave: String) {
+        val existeUsuario = dbManager.verificarSiExisteUsuario(uEmail, uClave)
+        withContext(Dispatchers.Main) {
+            when (existeUsuario) {
+                null -> {
+                    //si hay error de conexion con la base de datos
+                    vista?.errorEnConexion()
+                }
+                true -> {
+                    //si el usuario ya existe
+                    vista?.existeElUsuario()
+                }
+                else -> {
+                    //si el usuario no existe
+                    vista?.guardarUsuario()
+                }
+            }
+        }
+    }
+
+    //Metodo para agregar usuario a la memoria
+    override suspend fun agregarUsuario(usuario: MdUsuario) {
+        val noHayError = dbManager.agregarUsuarioEnMemoria(usuario)
+        withContext(Dispatchers.Main) {
+            if (noHayError) {
+                //si no hay error al registral el usuario
+                vista?.usuarioAgregadoExitoso()
+            } else {
+                vista?.errorEnConexion()
+            }
+        }
+    }
+
+
+}
