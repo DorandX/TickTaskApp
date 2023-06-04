@@ -22,18 +22,20 @@ import com.example.ticktask.databinding.VerGuardarTareaBinding
 import com.example.ticktask.databinding.VerItemDeTareaBinding
 import com.example.ticktask.databinding.VerTareasBinding
 import com.example.ticktask.manager.MaListaDeTareas
-import com.example.ticktask.manager.vista.IMaListaDeTarea
+import com.example.ticktask.manager.interfaz.IMaListaDeTarea
+import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.DeslizaYElimina
 import com.example.ticktask.utilidades.DeslizarYEdita
 import com.example.ticktask.utilidades.Info
 import com.example.ticktask.utilidades.Variables
-import com.example.ticktask.vista.viInterfaz.ViDeListaDeTareas
+import com.example.ticktask.vista.interfaz.ViDeListaDeTareas
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.sql.Date
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -43,8 +45,9 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
     private lateinit var verLista: VerTareasBinding
     private lateinit var verTareas: VerItemDeTareaBinding
     private lateinit var crearTarea: VerGuardarTareaBinding
-    private var idDeUsuario: MdUsuario?=null
+    private lateinit var idDeUsuario: MdUsuario
     private var controlador: IMaListaDeTarea = MaListaDeTareas()
+
 
     //Validamos todas las variables que pertenecen a nuestro objeto tarea
     private var idTarea: Int = 0
@@ -59,7 +62,6 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         verLista = VerTareasBinding.inflate(layoutInflater)
         setContentView(verLista.root)
         controlador.entrarAVista(this)
-
         cargarVistas()
 
     }
@@ -98,7 +100,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                TODO("Not yet implemented")
+                Toast.makeText(this@Tareas,"Ningún elemento seleccionado", Toast.LENGTH_SHORT).show()
             }
         }
         verLista.nuevaTarea.setOnClickListener {
@@ -176,6 +178,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             withContext(Dispatchers.IO) {
                 controlador.ordenarTareas(
                     idTarea,
+                    idDeUsuario!!,
                     position,
                     verLista.BtnOrdenAsc.visibility == View.VISIBLE
                 )
@@ -188,10 +191,12 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         verCargarDatos(true)
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
-                controlador.ordenarTareas(
-                    idTarea, Variables.ITEM_TITULO,
-                    verLista.BtnOrdenAsc.visibility == View.VISIBLE
-                )
+                idDeUsuario?.let {
+                    controlador.ordenarTareas(
+                        idTarea, it,Variables.ITEM_TITULO,
+                        verLista.BtnOrdenAsc.visibility == View.VISIBLE
+                    )
+                }
             }
         }.invokeOnCompletion {
             verCargarDatos(false)
@@ -239,14 +244,21 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             }
         } else {
             val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val fechaEntrega = formatoFecha.parse(fechaEntregaText)
 
-                val tarea = MdTarea(idTarea, idDeUsuario!!, titulo, descripcion, prioridad, estado, fechaEntrega as Date?)
+            try {
+                val fechaEntrega = formatoFecha.parse(fechaEntregaText)
+
+                val tarea = MdTarea(idTarea, idDeUsuario.idUsuario, titulo, descripcion, prioridad, estado, fechaEntrega as Date?)
 
                 lifecycleScope.launch(Dispatchers.Main) {
                     withContext(Dispatchers.IO) {
                         controlador.actualizarTarea(tarea)
                     }
+                }
+            } catch (ex: ParseException) {
+                runOnUiThread {
+                    Info.mostrarMensaje(this, "Error al convertir la fecha de entrega")
+                }
             }
         }
     }
@@ -298,6 +310,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         verLista.entradaItemsTareas.adapter = adaptador
         controlador.aplicarEstado(verLista.ordenPorEstado.selectedItemPosition, ldTotalTareas)
     }
+
 
 
     override fun aplicarFiltroEnVista(listaDeTareas: ArrayList<MdTarea>) {

@@ -1,8 +1,15 @@
 package com.example.ticktask.memoria
 
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import com.example.ticktask.memoria.Datos.APELLIDO_DE_USUARIO
 import com.example.ticktask.memoria.Datos.CLAVE_DE_USUARIO
+import com.example.ticktask.memoria.Datos.CREAR_TABLA_DE_TAREA
+import com.example.ticktask.memoria.Datos.CREAR_TABLA_DE_USUARIO
 import com.example.ticktask.memoria.Datos.DESCRIPCION_DE_TAREA
+import com.example.ticktask.memoria.Datos.ELIMINAR_TABLA_DE_TAREA
+import com.example.ticktask.memoria.Datos.ELIMINAR_TABLA_DE_USUARIO
 import com.example.ticktask.memoria.Datos.EMAIL_DE_USUARIO
 import com.example.ticktask.memoria.Datos.ENTREGA_DE_TAREA
 import com.example.ticktask.memoria.Datos.ESTADO_DE_TAREA
@@ -12,7 +19,6 @@ import com.example.ticktask.memoria.Datos.ID_USUARIO
 import com.example.ticktask.memoria.Datos.TITULO_DE_TAREA
 import com.example.ticktask.memoria.Datos.NOMBRE_DE_USUARIO
 import com.example.ticktask.memoria.Datos.PRIORIDAD
-import com.example.ticktask.memoria.Datos.PROYECTO_DE_TAREA
 import com.example.ticktask.memoria.Datos.TABLA_DE_TAREA
 import com.example.ticktask.memoria.Datos.TABLA_DE_USUARIO
 import com.example.ticktask.memoria.Datos.TELEFONO_DE_USUARIO
@@ -21,177 +27,82 @@ import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import java.sql.*
 import java.util.ArrayList
-import java.util.Date
-import java.util.Properties
 
-class GestionDeDatos {
+class GestionDeDatos private constructor(contexto: Context): SQLiteOpenHelper(contexto,
+    TICKTASK_BDD_NOMBRE,null,DATABASE_VERSION){
     companion object {
-        val instance = GestionDeDatos()
+        const val TICKTASK_BDD_NOMBRE = "TickTaskDB"
+        const val DATABASE_VERSION = 1
+
+        private var instance: GestionDeDatos? = null
+
+        fun getInstance(contexto: Context): GestionDeDatos {
+            if (instance == null) {
+                instance = GestionDeDatos(contexto.applicationContext)
+            }
+            return instance!!
+        }
+    }
+override fun onCreate(db: SQLiteDatabase) {
+    db.execSQL(CREAR_TABLA_DE_USUARIO)
+    db.execSQL(CREAR_TABLA_DE_TAREA)
+}
+
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+        db!!.execSQL(ELIMINAR_TABLA_DE_USUARIO)
+        db!!.execSQL(ELIMINAR_TABLA_DE_TAREA)
     }
 
-    //Declaramos un singleton para no tener que hacer varias instancias
-    fun getInstance(): GestionDeDatos {
-        return instance
-    }
 
     private var conexion: Connection? = null
-    private var nUsuario = "blogandw_TickTas"
-    private var uClave = "6T4jtATQgBcxv#G&njPh"
 
 
-    //Configuramos la conexion
-    fun getConnection(): Boolean {
-        var noError = true //variable para controlar si hay error
-        val datosDeConexion = Properties()// variable para guardar las propiedades de conexion
-        datosDeConexion["usuario"] = nUsuario
-        datosDeConexion["clave"] = uClave
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver").newInstance()
-            conexion = DriverManager.getConnection(
-                "jdbc:" + "mysql" + "://" +
-                        "campoamor.me" + ":" +
-                        "3306" + "/" +
-                        TICKTASK_BDD_NOMBRE, datosDeConexion
-            )
-        } catch (ex: SQLException) {
-            //Si hay error, lo guardaremos en la variable noError
-            noError = false
-            ex.printStackTrace()
-        } catch (ex: Exception) {
-            noError = false
-            ex.printStackTrace()
-        } finally {
-            if (noError) {
-                noError = executeMySQLQueryCreation()
-            }
-        }
-        return noError
-    }
 
-    private fun executeMySQLQueryCreation(): Boolean {
-        var stmt: Statement? = null // variable para ejecutar las consultas
-        var noError = true // variable para controlar si hay error
-        try {
-            // intentamos ejecutar las consultas de las 3 tablas
-            stmt = conexion?.createStatement()
-            var query = ("CREATE TABLE IF NOT EXISTS " + TABLA_DE_USUARIO + "("
-                    + ID_USUARIO + " INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-                    + NOMBRE_DE_USUARIO + " varchar(45) NOT NULL, "
-                    + APELLIDO_DE_USUARIO + " varchar(45) NOT NULL, "
-                    + EMAIL_DE_USUARIO + " varchar(45) NOT NULL, "
-                    + TELEFONO_DE_USUARIO + "INT NOT NULL DEFAULT 0, "
-                    + CLAVE_DE_USUARIO + "varchar(45) NOT NULL,"
-                    + ")")
-            stmt?.executeQuery(query)
+    //CRUD DEL OBJETO/ TABLA USUARIO
 
-            query = ("CREATE TABLE IF NOT EXISTS " + TABLA_DE_TAREA + "("
-                    + ID_DE_TAREA + " INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-                    + ID_DE_PROPIETARIO + "INT NOT NULL"
-                    + TITULO_DE_TAREA + " VARCHAR(45) NOT NULL, "
-                    + DESCRIPCION_DE_TAREA + " VARCHAR(45) , "
-                    + PRIORIDAD + " varchar(45) NOT NULL, "
-                    + ESTADO_DE_TAREA + "VARCHAR(45) NOT NULL,"
-                    + ENTREGA_DE_TAREA + "DATETIME," + "FOREIGN KEY (" + ID_DE_PROPIETARIO + ") REFERENCES " + TABLA_DE_USUARIO + "(" + ID_USUARIO + ")"
-                    + ")")
-            stmt?.executeQuery(query)
-
-        } catch (ex: SQLException) {
-            // si hay error, lo guardamos en la variable noError
-            noError = false
-            ex.printStackTrace()
-        } finally {
-            // al finalizar sin error, cerramos la conexion
-            if (stmt != null) {
-                try {
-                    stmt.close()
-                } catch (sqlEx: SQLException) {
-                }
-            }
-        }
-        return noError
-    }
-    //Verificamos la reconexion a la base de datos
-
-    fun tryReconnect(): Boolean {
-        // probamos la conexion a la base de datos
-        if (conexion == null || conexion?.isClosed == true) {
-            // si no hay conexion, la intentamos
-            for (i in 0..5) {
-                if (getConnection()) return true
-            }
-        }
-        return false
-    }
-
-    //CRUD USUARIO
-    fun getUserId(nUsuario: String): Int? {
-        var stmt: Statement? = null
-        var resSet: ResultSet? = null
-        var idDeUsuario: Int? = null
-        try {
-            stmt = conexion?.createStatement()
-            val query =
-                ("SELECT $ID_USUARIO FROM $TABLA_DE_USUARIO WHERE $NOMBRE_DE_USUARIO = '$nUsuario'")
-            resSet = stmt?.executeQuery(query)
-
-            if (resSet?.next() == true) {
-                idDeUsuario = resSet.getInt(ID_USUARIO)
-            }
-
-        } catch (ex: SQLException) {
-            ex.printStackTrace()
-        } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close()
-                } catch (sqlEx: SQLException) {
-                }
-            }
-            if (resSet != null) {
-                try {
-                    resSet.close()
-                } catch (sqlEx: SQLException) {
-                }
-            }
-        }
-        return idDeUsuario
-
-    }
-
-    fun esUnUsuarioValido(eUsuario: String, uClave: String): Boolean? {
-        // comprobamos que username y password no esten vacios
-        if (eUsuario.isEmpty() || uClave.isEmpty()) {
+    /**
+     * Este método valida que los campos ingresados en email y clave son correctos,
+     * si los datos están correctos, se guarda en memoria, sino, salta un error.
+     */
+    fun validarUsuario(uEmail: String, uClave: String): Boolean? {
+        // comprobamos que el nombre de usuario y la contraseña no estén vacíos
+        if (uEmail.isEmpty() || uClave.isEmpty()) {
             return false
         }
-        var esValido: Boolean? // variable para controlar si hay error
-        var stmt: Statement? = null // variable para ejecutar las consultas
+
+        var esValido: Boolean? // variable para controlar si hay algun error
+        var stmt: PreparedStatement? = null // variable para ejecutar las consultas preparadas
         var resQuery: ResultSet? = null // variable para guardar los resultados de las consultas
 
         try {
-            // intentamos ejecutar la consulta
-            stmt = conexion?.createStatement()
-            val query = ("SELECT $EMAIL_DE_USUARIO FROM $TABLA_DE_USUARIO " +
-                    "WHERE $EMAIL_DE_USUARIO = '$eUsuario' AND $CLAVE_DE_USUARIO = '$uClave'")
-            resQuery = stmt?.executeQuery(query)
+            // intentamos ejecutar la consulta preparada
+            val query = "SELECT $EMAIL_DE_USUARIO FROM $TABLA_DE_USUARIO " +
+                    "WHERE $EMAIL_DE_USUARIO = ? AND $CLAVE_DE_USUARIO = ?"
+            stmt = conexion?.prepareStatement(query)
+            stmt?.setString(1, uEmail)
+            stmt?.setString(1, uClave)
+            resQuery = stmt?.executeQuery()
 
-            esValido = resQuery?.next() // si hay resultados, isValid es true
+            esValido = resQuery?.next() // si hay resultados, esValido es true
 
         } catch (ex: SQLException) {
-            // si hay error, lo guardamos en la variable isValid
+            // si hay error, lo guardamos en la variable esValido
             esValido = null
             ex.printStackTrace()
         } finally {
-            // al finalizar sin error, cerramos la conexion
+            // al finalizar sin error, cerramos la conexión y liberamos los recursos
             if (stmt != null) {
                 try {
                     stmt.close()
                 } catch (sqlEx: SQLException) {
+                    sqlEx.printStackTrace()
                 }
             }
             if (resQuery != null) {
                 try {
                     resQuery.close()
                 } catch (sqlEx: SQLException) {
+                    sqlEx.printStackTrace()
                 }
             }
         }
@@ -199,16 +110,24 @@ class GestionDeDatos {
         return esValido
     }
 
-    fun agregarUsuarioEnMemoria(nUsuario: MdUsuario): Boolean {
-        var stmt: Statement? = null
+    /**
+     * Es importante agregar al usuario a la base de datos,
+     * Para ello analisaremos el usuario ingresado y lo guardaremos en la memoria
+     */
+    fun guardarUsuario(usuario: MdUsuario): Boolean {
+        var stmt: PreparedStatement? = null
         var noError = true
         try {
-            stmt = conexion?.createStatement()
             val query =
-                ("INSERT INTO $TABLA_DE_USUARIO ($NOMBRE_DE_USUARIO, $APELLIDO_DE_USUARIO, $EMAIL_DE_USUARIO, $TELEFONO_DE_USUARIO, $CLAVE_DE_USUARIO)" +
-                        " VALUES ('${nUsuario.nombre}', '${nUsuario.apellido},'${nUsuario.email},'${nUsuario.clave}','${nUsuario.telefono},')")
-            stmt?.executeQuery(query)
-
+                "INSERT INTO $TABLA_DE_USUARIO ($NOMBRE_DE_USUARIO, $APELLIDO_DE_USUARIO, $EMAIL_DE_USUARIO, $TELEFONO_DE_USUARIO, $CLAVE_DE_USUARIO) " +
+                        "VALUES (?, ?, ?, ?, ?)"
+            stmt = conexion?.prepareStatement(query)
+            stmt?.setString(1, usuario.nombre)
+            stmt?.setString(2, usuario.apellido)
+            stmt?.setString(3, usuario.email)
+            stmt?.setInt(4, usuario.telefono)
+            stmt?.setString(5, usuario.clave)
+            stmt?.executeUpdate()
         } catch (ex: SQLException) {
             noError = false
             ex.printStackTrace()
@@ -217,25 +136,34 @@ class GestionDeDatos {
                 try {
                     stmt.close()
                 } catch (sqlEx: SQLException) {
+                    sqlEx.printStackTrace()
                 }
             }
         }
         return noError
     }
 
-    fun verificarSiExisteUsuario(eUsuario: String, cUsuario: String): Boolean? {
-        if (eUsuario.isEmpty() && cUsuario.isEmpty()) {
+    /**
+     * ¿Como creamos un usuario si ya existe anteriormente?
+     * En este método se consulta la memoria para verificar si no existe,
+     * de validar por email y clave que el usuario no existe, se guarda el usuario.
+     * de no validar, muestra mensaje de error.
+     */
+    fun verificarUsuario(uEmail: String, uClave: String): Boolean? {
+        if (uEmail.isEmpty() || uClave.isEmpty()) {
             return false
         }
         var esValido: Boolean?
-        var stmt: Statement? = null
+        var stmt: PreparedStatement? = null
         var resSet: ResultSet? = null
 
         try {
-            stmt = conexion?.createStatement()
             val query =
-                ("SELECT $EMAIL_DE_USUARIO AND $CLAVE_DE_USUARIO FROM $TABLA_DE_USUARIO WHERE $EMAIL_DE_USUARIO= '$eUsuario' AND $CLAVE_DE_USUARIO ='$cUsuario' ")
-            resSet = stmt?.executeQuery(query)
+                "SELECT $EMAIL_DE_USUARIO, $CLAVE_DE_USUARIO FROM $TABLA_DE_USUARIO WHERE $EMAIL_DE_USUARIO = ? AND $CLAVE_DE_USUARIO = ?"
+            stmt = conexion?.prepareStatement(query)
+            stmt?.setString(1, uEmail)
+            stmt?.setString(2, uClave)
+            resSet = stmt?.executeQuery()
             esValido = resSet?.next() == true
         } catch (ex: SQLException) {
             esValido = null
@@ -252,17 +180,20 @@ class GestionDeDatos {
         return esValido
     }
 
-    // Metodo para actualizar los datos de un usuario
-    fun actualizarDatosDeUsuario(usuEmail: String, usuClave: String): Boolean {
-        var stmt: Statement? = null
+    /**
+     * En cuenta, el usuario tiene la posibilidad de cambiar clave,
+     * para ello actualizaremos los datos en memoria segun su email y la nueva clave.
+     */
+    fun actualizarUsuario(uEmail: String, uNuevaClave: String): Boolean {
         var noError = true
+        var stmt: PreparedStatement? = null
         try {
-            stmt = conexion?.createStatement()
             val query =
-                ("UPDATE ${TABLA_DE_USUARIO} SET $CLAVE_DE_USUARIO = '$usuClave' WHERE $EMAIL_DE_USUARIO = $usuEmail")
-
-            stmt?.executeQuery(query)
-
+                "UPDATE $TABLA_DE_USUARIO SET $CLAVE_DE_USUARIO = ? WHERE $EMAIL_DE_USUARIO = ?"
+            stmt = conexion?.prepareStatement(query)
+            stmt?.setString(1, uNuevaClave)
+            stmt?.setString(2, uEmail)
+            stmt?.executeUpdate()
         } catch (ex: SQLException) {
             noError = false
             ex.printStackTrace()
@@ -277,15 +208,21 @@ class GestionDeDatos {
         return noError
     }
 
+    /**
+     * El usuario tiene la opción de darse de baja desde su cuenta,
+     * para ello, cuando el usuario no quiera esté interesado en la aplicación se dara la opción
+     * y por ende al darle click en dar de baja, automáticamente se dara de baja en la memoria.
+     */
     fun eliminarUsuario(uEmail: String, uClave: String): Boolean {
-        var stmt: Statement? = null
+        var stmt: PreparedStatement? = null
         var noHayError = true
         try {
-            stmt = conexion?.createStatement()
-            // borramos el juego de la tabla intermedia de relacion
-            var query =
-                ("DELETE FROM $TABLA_DE_USUARIO WHERE $EMAIL_DE_USUARIO = $uEmail AND $CLAVE_DE_USUARIO = $uClave")
-            stmt?.executeQuery(query)
+            val query =
+                ("DELETE FROM $TABLA_DE_USUARIO WHERE $EMAIL_DE_USUARIO = ? AND $CLAVE_DE_USUARIO = ?")
+            stmt = conexion?.prepareStatement(query)
+            stmt?.setString(1, uEmail)
+            stmt?.setString(2, uClave)
+            stmt?.executeUpdate()
 
         } catch (ex: SQLException) {
             noHayError = false
@@ -302,17 +239,28 @@ class GestionDeDatos {
     }
 
 
-    //CRUD TAREA
-    fun añadirTareaEnMemoria(nTarea: MdTarea): Boolean {
-        var stmt: Statement? = null
+    //CRUD PARA EL OBJETO/ TABLA TAREA
+
+    /**
+     * Para crear la tarea, solicitamos info de la tarea a publicar,
+     * segun ello se añade a la memoria según los datos colocados en los campos.
+     */
+    fun crearTarea(nTarea: MdTarea): Boolean {
+        var stmt: PreparedStatement? = null
         var noError = true
         try {
-            stmt = conexion?.createStatement()
-            val query =
-                ("INSERT INTO $TABLA_DE_TAREA ($ID_DE_TAREA, $ID_DE_PROPIETARIO,$TITULO_DE_TAREA, $DESCRIPCION_DE_TAREA $PRIORIDAD $ESTADO_DE_TAREA, $ENTREGA_DE_TAREA)" +
-                        " VALUES ('${nTarea.idDeTarea}','${nTarea.idDeUsuario}','${nTarea.titulo}', '${nTarea.descripcion},'${nTarea.prioridad},'${nTarea.estado}','${nTarea.entrega},')")
-            stmt?.executeQuery(query)
 
+            val query =
+                "INSERT INTO $TABLA_DE_TAREA ($ID_DE_TAREA, $ID_DE_PROPIETARIO, $TITULO_DE_TAREA, $DESCRIPCION_DE_TAREA, $PRIORIDAD, $ESTADO_DE_TAREA, $ENTREGA_DE_TAREA) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            stmt = conexion?.prepareStatement(query)
+            stmt?.setInt(1, nTarea.idDeTarea)
+            stmt?.setInt(2, nTarea.idDeUsuario)
+            stmt?.setString(3, nTarea.titulo)
+            stmt?.setString(4, nTarea.descripcion)
+            stmt?.setString(5, nTarea.prioridad)
+            stmt?.setString(6, nTarea.estado)
+            stmt?.setDate(7, nTarea.entrega)
+            stmt?.executeUpdate()
         } catch (ex: SQLException) {
             noError = false
             ex.printStackTrace()
@@ -327,62 +275,56 @@ class GestionDeDatos {
         return noError
     }
 
+    /**
+     * A continuación validamos que existe la tarea,
+     * inicializamos variable es valido a falso para que pueda contar si existe la tarea, sino retorna true.
+     */
     fun verificarSiExisteTarea(nTarea: String): Boolean? {
         if (nTarea.isEmpty()) {
             return false
         }
-        var esValido: Boolean?
-        var stmt: Statement? = null
-        var resSet: ResultSet? = null
+        var esValido = false
 
         try {
-            stmt = conexion?.createStatement()
-            val query =
-                ("SELECT $TITULO_DE_TAREA ROM $TABLA_DE_TAREA WHERE $TITULO_DE_TAREA= '$nTarea'")
-            resSet = stmt?.executeQuery(query)
-            esValido = resSet?.next() == true
-        } catch (ex: SQLException) {
-            esValido = null
-            ex.printStackTrace()
-        } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close()
-                } catch (sqlEx: SQLException) {
-                    sqlEx.printStackTrace()
-                }
+            val query = "SELECT COUNT(*) FROM $TABLA_DE_TAREA WHERE $TITULO_DE_TAREA = ?"
+            val stmt = conexion?.prepareStatement(query)
+            stmt?.setString(1, nTarea)
+            val resSet = stmt?.executeQuery()
+            if (resSet?.next() == true) {
+                val count = resSet.getInt(1)
+                esValido = count > 0
             }
+        } catch (ex: SQLException) {
+            ex.printStackTrace()
         }
+
         return esValido
     }
 
 
-    // Metodo para obtener la lista de tareas según proyecto.
+    /**
+     * si existe la tarea, pues ordenamos por id, y salen todos los datos.
+     */
     fun ordenarTareaSegunId(
         idTarea: Int,
-        idDeUsuario: MdUsuario,
+        idDeUsuario: Int,
         order: String? = null,
         ascOrder: Boolean = true
     ): ArrayList<MdTarea>? {
-        var stmt: Statement? = null
+        var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         var tareas: ArrayList<MdTarea>? = null
         try {
-            stmt = conexion?.createStatement()
-            var query =
-                ("SELECT $ID_DE_TAREA," +
-                        "$ID_DE_PROPIETARIO" +
-                        "$TITULO_DE_TAREA," +
-                        "$DESCRIPCION_DE_TAREA," +
-                        "$PROYECTO_DE_TAREA," +
-                        "T1.$ESTADO_DE_TAREA," +
-                        "T1.$ENTREGA_DE_TAREA," +
-                        "FROM $TABLA_DE_TAREA WHERE T1.$ID_DE_TAREA = $idTarea")
-            if (order != null) {
-                val orderBy = if (ascOrder) "ASC" else "DESC"
-                query += " ORDER BY $order $orderBy"
-            }
-            resultSet = stmt?.executeQuery(query)
+            val query =
+                ("SELECT $ID_DE_TAREA, $ID_DE_PROPIETARIO, $TITULO_DE_TAREA, $DESCRIPCION_DE_TAREA, $ESTADO_DE_TAREA, $ENTREGA_DE_TAREA " +
+                        "FROM $TABLA_DE_TAREA WHERE $ID_DE_TAREA = ?")
+            val orderBy = if (ascOrder) "ASC" else "DESC"
+            val orderByClause = if (order != null) " ORDER BY $order $orderBy" else ""
+            val finalQuery = query + orderByClause
+
+            preparedStatement = conexion?.prepareStatement(finalQuery)
+            preparedStatement?.setInt(1, idTarea)
+            resultSet = preparedStatement?.executeQuery()
 
             tareas = ArrayList<MdTarea>()
             while (resultSet?.next() == true) {
@@ -394,82 +336,78 @@ class GestionDeDatos {
                         resultSet.getString(DESCRIPCION_DE_TAREA),
                         resultSet.getString(PRIORIDAD),
                         resultSet.getString(ESTADO_DE_TAREA),
-                        resultSet.getDate(ENTREGA_DE_TAREA),
-
-                        )
+                        resultSet.getDate(ENTREGA_DE_TAREA)
+                    )
                 )
             }
-
         } catch (ex: SQLException) {
             ex.printStackTrace()
         } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close()
-                } catch (sqlEx: SQLException) {
-                }
-            }
-            if (resultSet != null) {
-                try {
-                    resultSet.close()
-                } catch (sqlEx: SQLException) {
-                }
-            }
+            preparedStatement?.close()
+            resultSet?.close()
         }
         return tareas
     }
 
-    // metodo para borrar un juego de un usuario
-    fun eliminarTarea(idTarea: Int): Boolean {
-        var stmt: Statement? = null
-        var noHayError = true
-        try {
-            stmt = conexion?.createStatement()
-            // borramos el juego de la tabla tareas
-            var query = ("DELETE FROM $TABLA_DE_TAREA WHERE $ID_DE_TAREA = $idTarea")
-            stmt?.executeQuery(query)
-
-        } catch (ex: SQLException) {
-            noHayError = false
-            ex.printStackTrace()
-        } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close()
-                } catch (sqlEx: SQLException) {
-                }
-            }
-        }
-        return noHayError
-    }
-
-
+    /**
+     * Si el usuario ha deslizado y quiere editar,
+     * se realizan las actualizaciones para que se guarden luego en memoria.
+     */
     fun actualizarDatosDeTarea(
-    tarea: MdTarea
+        tarea: MdTarea
     ): Boolean {
-        var stmt: Statement? = null
+        var preparedStatement: PreparedStatement? = null
         var noHayError = true
         try {
-            stmt = conexion?.createStatement()
-            val query = ("UPDATE ${TABLA_DE_TAREA} SET $TITULO_DE_TAREA = '${tarea.titulo}'" +
-                    " AND $DESCRIPCION_DE_TAREA = '${tarea.descripcion}'  AND $PRIORIDAD ='${tarea.prioridad}' " +
-                    "AND $ESTADO_DE_TAREA ='${tarea.estado}'' AND $ENTREGA_DE_TAREA= '${tarea.entrega}''" +
-                    " WHERE $ID_DE_TAREA = '${tarea.idDeTarea}' AND $ID_DE_PROPIETARIO = '${tarea.idDeUsuario}'")
+            val query = ("UPDATE $TABLA_DE_TAREA SET $TITULO_DE_TAREA = ?, " +
+                    "$DESCRIPCION_DE_TAREA = ?, $PRIORIDAD = ?, " +
+                    "$ESTADO_DE_TAREA = ?, $ENTREGA_DE_TAREA = ? " +
+                    "WHERE $ID_DE_TAREA = ? AND $ID_DE_PROPIETARIO = ?")
 
-            stmt?.executeQuery(query)
-
+            preparedStatement = conexion?.prepareStatement(query)
+            preparedStatement?.setString(1, tarea.titulo)
+            preparedStatement?.setString(2, tarea.descripcion)
+            preparedStatement?.setString(3, tarea.prioridad)
+            preparedStatement?.setString(4, tarea.estado)
+            preparedStatement?.setDate(5, tarea.entrega)
+            preparedStatement?.setInt(6, tarea.idDeTarea)
+            preparedStatement?.setInt(7, tarea.idDeUsuario)
+            preparedStatement?.executeUpdate()
         } catch (ex: SQLException) {
             noHayError = false
             ex.printStackTrace()
         } finally {
-            if (stmt != null) {
+            preparedStatement?.close()
+        }
+        return noHayError
+    }
+
+    /**
+     * Si el usuario desea eliminar, se llama a este método y la elimina de memoria.
+     */
+    fun eliminarTarea(idTarea: Int): Boolean {
+        var pstmt: PreparedStatement? = null
+        var noHayError = true
+        try {
+            val query = "DELETE FROM $TABLA_DE_TAREA WHERE $ID_DE_TAREA = ?"
+            pstmt = conexion?.prepareStatement(query)
+            pstmt?.setInt(1, idTarea)
+            pstmt?.executeUpdate()
+        } catch (ex: SQLException) {
+            noHayError = false
+            ex.printStackTrace()
+        } finally {
+            if (pstmt != null) {
                 try {
-                    stmt.close()
+                    pstmt.close()
                 } catch (sqlEx: SQLException) {
                 }
             }
         }
         return noHayError
     }
+
+
+
 
 }

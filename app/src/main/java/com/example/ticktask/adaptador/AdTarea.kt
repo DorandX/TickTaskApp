@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ticktask.databinding.VerItemDeTareaBinding
 import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.vista.GuardarTarea
+import java.text.SimpleDateFormat
 
 class AdTarea(private var listaDeTareas: ArrayList<MdTarea>, var contexto: Context) :
     RecyclerView.Adapter<AdTarea.VerTodoLosDatos>() {
@@ -27,9 +28,17 @@ class AdTarea(private var listaDeTareas: ArrayList<MdTarea>, var contexto: Conte
 
     override fun onBindViewHolder(holder: VerTodoLosDatos, position: Int) {
         val tarea: MdTarea = listaDeTareas[position]
-        holder.itemTarea.TituloDeTarea.text = tarea.titulo
-        holder.itemTarea.DescripcionDeTarea.text = tarea.descripcion
-        holder.itemTarea.prioridadDeTarea.text = tarea.prioridad
+        holder.itemTarea.TituloDeTarea.text= tarea.titulo
+        holder.itemTarea.DescripcionDeTarea.text= tarea.descripcion.toString()
+        holder.itemTarea.Prioridad.setText(tarea.prioridad)
+        holder.itemTarea.Estado.setText(tarea.estado)
+
+        val formatoDeFecha= SimpleDateFormat("dd/MM/yyyy")
+        val textoDeFecha= holder.itemTarea.BtnDeEntrega.text.toString()
+        val fechaDeEntrega= formatoDeFecha.parse(textoDeFecha)
+        if (fechaDeEntrega != null) {
+            holder.itemTarea.BtnDeEntrega.text = fechaDeEntrega.toString()
+        }
     }
 
     override fun getItemCount(): Int {

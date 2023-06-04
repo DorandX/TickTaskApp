@@ -1,24 +1,22 @@
 package com.example.ticktask.vista
 
 import android.app.DatePickerDialog
-import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
 import android.view.Window
 import android.widget.ArrayAdapter
-import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.R
 import com.example.ticktask.databinding.VerGuardarTareaBinding
 import com.example.ticktask.manager.MaDeGuardarTarea
-import com.example.ticktask.manager.vista.IMaDeGuardarTarea
+import com.example.ticktask.manager.interfaz.IMaDeGuardarTarea
+import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.Info
-import com.example.ticktask.vista.viInterfaz.ViDeGuardarTarea
+import com.example.ticktask.vista.interfaz.ViDeGuardarTarea
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,7 +29,6 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
     private var idTarea: Int = 0
     private var idDeUsuario: MdUsuario?=null
     private var controlador: IMaDeGuardarTarea = MaDeGuardarTarea()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,55 +55,21 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
     }
 
     private fun seleccionarPrioridad() {
-        guardarTarea.EstadoDeTarea.completionHint = object : ArrayAdapter<String>(
-            this, R.layout.ver_item_simple,
+        val adapter = ArrayAdapter(
+            this,
+            R.layout.ver_item_simple,
             resources.getStringArray(R.array.main_lista_de_prioridad)
-        ) {
-            override fun isEnabled(position: Int): Boolean {
-                return position != 0
-            }
-
-            override fun getDropDownView(
-                position: Int,
-                convertView: View?,
-                parent: ViewGroup
-            ): View {
-                val view = super.getDropDownView(position, convertView, parent)
-                val element = view as TextView
-                if (position == 0) {
-                    element.setTextColor(Color.BLUE)
-                } else {
-                    element.setTextColor(Color.BLACK)
-                }
-                return view
-            }
-        }.toString()
+        )
+        guardarTarea.PrioridadDeTarea.setAdapter(adapter)
     }
 
     private fun seleccionarEstado() {
-        guardarTarea.EstadoDeTarea.completionHint = object : ArrayAdapter<String>(
-            this, R.layout.ver_item_simple,
+        val adapter = ArrayAdapter(
+            this,
+            R.layout.ver_item_simple,
             resources.getStringArray(R.array.iniciar_estado_de_tarea)
-        ) {
-            override fun isEnabled(position: Int): Boolean {
-                return position != 0
-            }
-
-            override fun getDropDownView(
-                position: Int,
-                convertView: View?,
-                parent: ViewGroup
-            ): View {
-                val view = super.getDropDownView(position, convertView, parent)
-                val element = view as TextView
-                if (position == 0) {
-                    element.setTextColor(Color.BLUE)
-                } else {
-                    element.setTextColor(Color.BLACK)
-                }
-                return view
-            }
-        }.toString()
+        )
+        guardarTarea.EstadoDeTarea.setAdapter(adapter)
     }
 
     override fun errorDeConexion() {
@@ -115,9 +78,13 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
         }
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
-                Info.errorDeConexion(this@GuardarTarea)
+                Info.errorDeConexion(this@GuardarTarea, )
             }
         }.invokeOnCompletion { verProcesarDatos(false) }
+    }
+
+    override fun existeLaTarea() {
+        Toast.makeText(this,"La tarea, ya exise", Toast.LENGTH_SHORT).show()
     }
 
     /**
@@ -174,28 +141,19 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
             verProcesarDatos(true)
             lifecycleScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
-                    controlador.guardarTareaEnMemoria(MdTarea(
-                        idTarea,
-                        idDeUsuario!!,
-                        titulo,
-                        descripcion,
-                        prioridad,
-                        estado,
-                        fechaEntrega as Date?
-                    )
-                    )
+                        MdTarea(
+                            idTarea,
+                            idDeUsuario!!.idUsuario,
+                            titulo,
+                            descripcion,
+                            prioridad,
+                            estado,
+                            fechaEntrega as Date?
+                        )
+                    }
                 }
             }
         }
-    }
-
-    /**
-     * Es una continuación del de guardar tarea,
-     * si la tarea existe, no la guarda.
-     */
-    override fun existeLaTarea() {
-        Toast.makeText(this,"La tarea, ya existe",Toast.LENGTH_SHORT).show()
-    }
 
     /**
      * Si el usuario edita la tarea, este actualiza los nuevos datos colocados y los guarda.
@@ -210,6 +168,5 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
             guardarTarea.cargandoTarea.visibility = View.GONE
         }
     }
-
 }
 

@@ -4,7 +4,7 @@ import java.sql.Date
 
 data class MdTarea(
     val idDeTarea: Int = 0,
-    val idDeUsuario: MdUsuario,
+    val idDeUsuario: Int,
     val titulo: String,
     val descripcion: String?= null,
     val prioridad: String,

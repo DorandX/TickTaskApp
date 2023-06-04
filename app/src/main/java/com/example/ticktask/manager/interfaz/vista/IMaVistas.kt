@@ -1,8 +1,8 @@
-package com.example.ticktask.manager.vista.utills
+package com.example.ticktask.manager.interfaz.vista
 
 import android.app.Activity
 
-interface utilManager {
+interface IMaVistas {
     fun entrarAVista(view:Activity)
     fun salirDeVista()
 }

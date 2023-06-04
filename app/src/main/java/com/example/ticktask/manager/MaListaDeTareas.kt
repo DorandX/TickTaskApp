@@ -1,17 +1,20 @@
 package com.example.ticktask.manager
 
 import android.app.Activity
-import com.example.ticktask.manager.vista.IMaListaDeTarea
+import com.example.ticktask.manager.interfaz.IMaListaDeTarea
+import com.example.ticktask.memoria.AppContextProvider
 import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdTarea
+import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.Variables
-import com.example.ticktask.vista.viInterfaz.ViDeListaDeTareas
+import com.example.ticktask.vista.interfaz.ViDeListaDeTareas
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.collections.ArrayList
 
 class MaListaDeTareas : IMaListaDeTarea {
     private var vista: ViDeListaDeTareas? = null
-    private var dbManager: GestionDeDatos = GestionDeDatos().getInstance()
+    val dbManager: GestionDeDatos = GestionDeDatos.getInstance(AppContextProvider.getContext())
 
     override fun entrarAVista(view: Activity) {
         this.vista = view as ViDeListaDeTareas
@@ -60,28 +63,56 @@ class MaListaDeTareas : IMaListaDeTarea {
         }
     }
 
-    override suspend fun ordenarTareas(idTarea: Int, orderBy: Int, ascOrder: Boolean) {
+    override suspend fun actualizarTarea(tarea: MdTarea) {
+        val noHayError = dbManager.actualizarDatosDeTarea(tarea)
+        withContext(Dispatchers.Main) {
+            if (noHayError) {
+                vista?.actualizarTarea()
+            } else {
+                vista?.errorDeConexion()
+            }
+        }
+    }
+
+
+    override suspend fun ordenarTareas(
+        idTarea: Int,
+        idUsuario: MdUsuario,
+        orderBy: Int,
+        ascOrder: Boolean
+    ) {
         var listaDeTareas: ArrayList<MdTarea>? = null
         when (orderBy) {
             Variables.ITEM_TITULO, 0 -> {
                 //si el ordenamiento es por nombre, se obtiene la lista de tareas por titulo
-                listaDeTareas = dbManager.ordenarTareaSegunId(idTarea, "titulo", ascOrder)
+                listaDeTareas =
+                    dbManager.ordenarTareaSegunId(idTarea, idUsuario.idUsuario, "titulo", ascOrder)
             }
             Variables.ITEM_DESCRIPCION, 0 -> {
                 //Si se ordena por descripción, se obtiene la lista de tareas por descripcion
-                listaDeTareas = dbManager.ordenarTareaSegunId(idTarea, "descripcion", ascOrder)
+                listaDeTareas = dbManager.ordenarTareaSegunId(
+                    idTarea, idUsuario.idUsuario, "descripcion",
+                    ascOrder
+                )
             }
             Variables.ITEM_PRIORIDAD, 0 -> {
                 //Si se ordena segun prioridad, se obtiene la lista de tarea segun prioridad
-                listaDeTareas = dbManager.ordenarTareaSegunId(idTarea, "prioridad", ascOrder)
+                listaDeTareas = dbManager.ordenarTareaSegunId(
+                    idTarea, idUsuario.idUsuario, "prioridad",
+                    ascOrder
+                )
             }
             Variables.ITEM_ESTADO, 0 -> {
                 //Si se ordena según estado, se obtiene la lista de tarea segun estado
-                listaDeTareas = dbManager.ordenarTareaSegunId(idTarea, "estado", ascOrder)
+                listaDeTareas =
+                    dbManager.ordenarTareaSegunId(idTarea, idUsuario.idUsuario, "estado", ascOrder)
             }
             Variables.ITEM_ENTREGA, 0 -> {
                 // Si se ordena segun fecha de entrega, se obtiene la lista, segun entrega.
-                listaDeTareas = dbManager.ordenarTareaSegunId(idTarea, "entrega", ascOrder)
+                listaDeTareas = dbManager.ordenarTareaSegunId(
+                    idTarea, idUsuario.idUsuario, "entrega",
+                    ascOrder
+                )
             }
         }
         withContext(Dispatchers.Main) {
@@ -100,7 +131,6 @@ class MaListaDeTareas : IMaListaDeTarea {
                 vista?.errorDeConexion()
                 return@withContext
             }
-            vista?.tareaNoGuardada(noEsGuardada = true)
         }
     }
 }

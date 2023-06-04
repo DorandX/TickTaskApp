@@ -1,9 +1,9 @@
-package com.example.ticktask.manager.vista
+package com.example.ticktask.manager.interfaz
 
-import com.example.ticktask.manager.vista.utills.utilManager
+import com.example.ticktask.manager.interfaz.vista.IMaVistas
 import com.example.ticktask.modelo.MdUsuario
 
-interface IMaRegistro:utilManager {
+interface IMaRegistro:IMaVistas {
     suspend fun verificarSiExisteUsuario(uEmail: String, uClave:String)
     suspend fun agregarUsuario(usuario: MdUsuario)
 }

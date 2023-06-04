@@ -3,23 +3,24 @@ package com.example.ticktask.utilidades
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
+import androidx.appcompat.widget.AppCompatDrawableManager
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ticktask.R
 
-abstract class DeslizarYEdita(cntxt: Context) :
+abstract class DeslizarYEdita(contexto: Context) :
     ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
     //Esta clase nos permite desplazar el dedo hacia la derecha y que cambie lo que se muestra
 
-    private val editIcon = ContextCompat.getDrawable(cntxt, R.drawable.vc_editar)
-    private val intrinsicWidth = editIcon?.intrinsicWidth
-    private val intrinsicHeight = editIcon?.intrinsicHeight
-    private val background = ColorDrawable()
-    private val backgroundColor = Color.parseColor("#60c659")
+    private val editDrawable = ContextCompat.getDrawable(contexto, R.drawable.vc_editar)
+    private val iconWidth = editDrawable?.intrinsicWidth ?: 0
+    private val iconHeight = editDrawable?.intrinsicHeight ?: 0
+    private val backgroundDrawable = ColorDrawable()
+    private val backgroundColor = ContextCompat.getColor(contexto, R.color.azulin)
     private val clearPaint = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
 
-    // Metodo que se ejecuta cuando se arrastra el item
+    // Método que se ejecuta cuando se arrastra el item
     override fun onMove(
         recyclerView: RecyclerView,
         viewHolder: RecyclerView.ViewHolder,
@@ -46,25 +47,26 @@ abstract class DeslizarYEdita(cntxt: Context) :
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
             return
         }
-        background.color = backgroundColor
-        background.setBounds(
+
+        backgroundDrawable.color = backgroundColor
+        backgroundDrawable.setBounds(
             itemView.left + dX.toInt(),
             itemView.top,
             itemView.left,
             itemView.bottom
         )
-        background.draw(c)
+        backgroundDrawable.draw(c)
 
-        if (intrinsicHeight == null || intrinsicWidth == null) return
+        if (iconHeight == 0 || iconWidth == 0) return
 
-        val editIconTop = itemView.top + (itemHeight - intrinsicHeight) / 2
-        val editIconMargin = (itemHeight - intrinsicHeight)
-        val editIconLeft = itemView.left + editIconMargin - intrinsicWidth
+        val editIconTop = itemView.top + (itemHeight - iconHeight) / 2
+        val editIconMargin = (itemHeight - iconHeight)
+        val editIconLeft = itemView.left + editIconMargin - iconWidth
         val editIconRight = itemView.left + editIconMargin
-        val editIconBottom = editIconTop + intrinsicHeight
+        val editIconBottom = editIconTop + iconHeight
 
-        editIcon?.setBounds(editIconLeft, editIconTop, editIconRight, editIconBottom)
-        editIcon?.draw(c)
+        editDrawable?.setBounds(editIconLeft, editIconTop, editIconRight, editIconBottom)
+        editDrawable?.draw(c)
 
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
     }
@@ -72,6 +74,4 @@ abstract class DeslizarYEdita(cntxt: Context) :
     private fun clearCanvas(c: Canvas?, left: Float, top: Float, right: Float, bottom: Float) {
         c?.drawRect(left, top, right, bottom, clearPaint)
     }
-
-
 }

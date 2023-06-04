@@ -9,10 +9,11 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerRegistroBinding
 import com.example.ticktask.manager.ManagerDeRegistro
-import com.example.ticktask.manager.vista.IMaRegistro
+import com.example.ticktask.manager.interfaz.IMaRegistro
+import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.Info
-import com.example.ticktask.vista.viInterfaz.ViDeRegistro
+import com.example.ticktask.vista.interfaz.ViDeRegistro
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -22,6 +23,7 @@ class Registro : AppCompatActivity(), ViDeRegistro {
     private lateinit var binding: VerRegistroBinding
     private var idUsuario: Int = 0
     private var gestion: IMaRegistro= ManagerDeRegistro()
+    private lateinit var dbManager: GestionDeDatos
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,26 +34,36 @@ class Registro : AppCompatActivity(), ViDeRegistro {
         cargarVistas()
     }
 
-    private fun cargarVistas(){
-        binding.btnUnirme.setOnClickListener{
-            val nombre= binding.txtNombre.text.toString()
-            val apellido= binding.txApellido.text.toString()
-            val email = binding.etxEmail.text.toString()
-            val telefono = binding.etxMovil.text.toString()
-            val clave= binding.etxClave.text.toString()
-            if(nombre.isEmpty() || apellido.isEmpty() || email.isEmpty()
-                || telefono.isEmpty() || clave.isEmpty()){
-                Toast.makeText(this,"Por favor, rellena los campos",Toast.LENGTH_SHORT).show()
-            } else{
+    private fun validarCampos(): Boolean {
+        val nombre = binding.txtNombre.text.toString()
+        val apellido = binding.txApellido.text.toString()
+        val email = binding.etxEmail.text.toString()
+        val telefono = binding.etxMovil.text.toString()
+        val clave = binding.etxClave.text.toString()
+
+        if (nombre.isEmpty() || apellido.isEmpty() || email.isEmpty()
+            || telefono.isEmpty() || clave.isEmpty()) {
+            Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        return true
+    }
+
+    private fun cargarVistas() {
+        val email = binding.etxEmail.text.toString()
+        val clave = binding.etxClave.text.toString()
+        binding.btnUnirme.setOnClickListener {
+            if (validarCampos()) {
                 cargandoDatos(true)
-                    lifecycleScope.launch(Dispatchers.Main){
-                        withContext(Dispatchers.IO){
-                            gestion.verificarSiExisteUsuario(email,clave)
-                        }
-                    } .invokeOnCompletion{cargandoDatos(false)}
-                }
+                lifecycleScope.launch(Dispatchers.Main) {
+                    withContext(Dispatchers.IO) {
+                        gestion.verificarSiExisteUsuario(email, clave)
+                    }
+                }.invokeOnCompletion { cargandoDatos(false) }
             }
-        }//Aquí se podría cargar algo más
+        }
+    }
 
     private fun  cargandoDatos(mostrarCarga: Boolean){
         if(mostrarCarga){

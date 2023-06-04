@@ -1,16 +1,16 @@
 package com.example.ticktask.manager
 
 import android.app.Activity
-import com.example.ticktask.manager.vista.IMaUsuario
+import com.example.ticktask.manager.interfaz.IMaUsuario
+import com.example.ticktask.memoria.AppContextProvider
 import com.example.ticktask.memoria.GestionDeDatos
-import com.example.ticktask.vista.viInterfaz.ViDeUsuario
+import com.example.ticktask.vista.interfaz.ViDeUsuario
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class ManagerDeUsuario: IMaUsuario{
     private var vista: ViDeUsuario?= null
-    private var dbManager: GestionDeDatos = GestionDeDatos().getInstance()
-
+    val dbManager: GestionDeDatos = GestionDeDatos.getInstance(AppContextProvider.getContext())
     override fun entrarAVista(view: Activity) {
         this.vista= view as ViDeUsuario
     }
@@ -18,7 +18,7 @@ class ManagerDeUsuario: IMaUsuario{
         this.vista = null
     }
     override suspend fun actualizarUsuario(uEmail: String, uClave: String) {
-        val noHayError = dbManager.actualizarDatosDeUsuario(uEmail,uClave)
+        val noHayError = dbManager.actualizarUsuario(uEmail,uClave)
         withContext(Dispatchers.Main){
             if(noHayError){
                 vista?.actualizarUsuarioExitoso()
@@ -28,8 +28,8 @@ class ManagerDeUsuario: IMaUsuario{
         }
     }
 
-    override suspend fun eliminarUsuario(idUsuario:Int) {
-        val noHayError= dbManager.eliminarUsuario(idUsuario)
+    override suspend fun eliminarUsuario(uEmail: String, uClave: String) {
+        val noHayError= dbManager.eliminarUsuario(uEmail,uClave)
         withContext(Dispatchers.Main){
             if(noHayError){
                 vista?.eliminarUsuarioExitoso()

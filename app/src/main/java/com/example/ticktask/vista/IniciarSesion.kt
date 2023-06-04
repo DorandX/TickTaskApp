@@ -9,10 +9,10 @@ import android.view.Window
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerIniciarSesionBinding
 import com.example.ticktask.manager.ManagerDeInicio
-import com.example.ticktask.manager.vista.IMaInicio
+import com.example.ticktask.manager.interfaz.IMaInicio
+import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.utilidades.Info
-import com.example.ticktask.utilidades.Variables
-import com.example.ticktask.vista.viInterfaz.ViDeInicio
+import com.example.ticktask.vista.interfaz.ViDeInicio
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,30 +33,20 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
 
     private fun cargarVista() {
         iniciarSesion()
-        conectarConMemoria()
         clickEn()
     }
 
     //Metodo que guarda la sesión del usuario.
     private fun iniciarSesion() {
         val preferencias = this.getPreferences(Context.MODE_PRIVATE) ?: return
-        val email = preferencias.getString("EMAIL", null)
-        val clave = preferencias.getString("CLAVE", null)
+        val email = preferencias.getString("EMAIL", "")
+        val clave = preferencias.getString("CLAVE", "")
         if (email != null && clave != null) {
             binding.EtqDeEmail.setText(email)
             binding.EdtClave.setText(clave)
         }
     }
 
-    //Metodo que conecta con la BDD
-    private fun conectarConMemoria() {
-        cargarDatos(true)
-        lifecycleScope.launch(Dispatchers.Main) {
-            withContext(Dispatchers.IO) {
-                gestion.getConexion()
-            }
-        }.invokeOnCompletion { cargarDatos(false) }
-    }
 
     //Método que activa el progreso de carga de datos o muestra opciones registro, recuperar contraseña.
     private fun cargarDatos(mostrarCarga: Boolean) {
@@ -70,27 +60,26 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
     }
 
     private fun clickEn() {
-        binding.BtnDeInicio.setOnClickListener {
-            //Primero validemos que el usuario existe en la base de datos
-            cargarDatos(true)
-            lifecycleScope.launch(Dispatchers.Main) {
-                withContext(Dispatchers.IO) {
-                    gestion.esUnUsuarioValido(
-                        binding.EtqDeEmail.text.toString(),
-                        binding.EdtClave.text.toString()
-                    )
-                }
-            }.invokeOnCompletion { cargarDatos(false) }
-        }
-        //Si no existe, habilitamos la opción de registrar
-        binding.BtnDeRegistro.setOnClickListener {
-            //Abrimos la actividad.
-            startActivity(Intent(this, Registro::class.java))
-            finish()
-        }
-    }
+            binding.BtnDeInicio.setOnClickListener {
+                cargarDatos(true)
+                lifecycleScope.launch(Dispatchers.Main) {
+                    withContext(Dispatchers.IO) {
+                        gestion.esUnUsuarioValido(
+                            binding.EtqDeEmail.text.toString(),
+                            binding.EdtClave.text.toString()
+                        )
+                    }
+                }.invokeOnCompletion { cargarDatos(false) }
+            }
 
-    override fun errorEnConexion() {
+            binding.BtnDeRegistro.setOnClickListener {
+                startActivity(Intent(this, Registro::class.java))
+                finish()
+            }
+        }
+
+
+        override fun errorEnConexion() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 Info.errorDeConexion(this@IniciarSesion)
@@ -98,7 +87,7 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
         }.invokeOnCompletion { cargarDatos(false) }
     }
 
-    override fun esUnUsuarioValido(idUsuario: Int) {
+    override fun esUnUsuarioValido(idUsuario: String, uClave: String) {
         val irATareas = Intent(this, Tareas::class.java)
         irATareas.putExtra("ID_DE_USUARIO", idUsuario)
         startActivity(irATareas)

@@ -1,4 +1,4 @@
-package com.example.ticktask.vista.viInterfaz
+package com.example.ticktask.vista.interfaz
 
 interface ViDeGuardarTarea {
     fun errorDeConexion()

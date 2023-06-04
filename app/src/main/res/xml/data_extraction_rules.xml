@@ -3,17 +3,15 @@
    See https://developer.android.com/about/versions/12/backup-restore#xml-changes
    for details.
 -->
-<data-extraction-rules>
+<data-extraction-rules xmlns:tools="http://schemas.android.com/tools">
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <include domain="file" path="/data/data/com.example.app/database/TickTask.db" />
+        <exclude domain="shared-pref" path="/data/data/com.example.app/shared_prefs/preferences.xml"
+            tools:ignore="FullBackupContent" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <include domain="file" path="/data/data/com.example.app/files/myfile.txt" />
+        <exclude domain="file" path="/data/data/com.example.app/cache/*"
+            tools:ignore="FullBackupContent" />
     </device-transfer>
-    -->
 </data-extraction-rules>

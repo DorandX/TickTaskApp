@@ -5,13 +5,16 @@ import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.widget.Toast
+import java.sql.SQLException
+import java.sql.ResultSet
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerCuentaBinding
 import com.example.ticktask.manager.MaDeCuenta
-import com.example.ticktask.manager.vista.IMaDeCuenta
+import com.example.ticktask.manager.interfaz.IMaDeCuenta
+import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.Info
-import com.example.ticktask.vista.viInterfaz.ViDeCuenta
+import com.example.ticktask.vista.interfaz.ViDeCuenta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -19,8 +22,8 @@ import kotlinx.coroutines.withContext
 class Cuenta : AppCompatActivity(), ViDeCuenta {
     private lateinit var verCuenta: VerCuentaBinding
     private lateinit var usuario: MdUsuario
-    private var idUsuario: Int=0
     private var controlador: IMaDeCuenta= MaDeCuenta()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,14 +32,15 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
         setContentView(verCuenta.root)
         controlador.entrarAVista(this)
         verCuenta.BtnDeSalir.setOnClickListener {
-            cargandoSalida(true)
+            mostrarCargandoSalida(true)
             controlador.salirDeVista()
         }
         cargarVistas()
     }
 
     private fun cargarVistas() {
-        TODO("Not yet implemented")
+        darDeBajaUsuarioCorrectamente(usuario)
+        actualizarContraseñaCorrectamente(usuario.email,usuario.clave)
     }
 
     override fun errorDeConexion() {
@@ -44,11 +48,11 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
             withContext(Dispatchers.IO){
                 Info.errorDeConexion(this@Cuenta)
             }
-        }.invokeOnCompletion { cargandoSalida (false)}
+        }.invokeOnCompletion { mostrarCargandoSalida (false)}
 
     }
 
-    override fun darDeBajaUsuarioCorrectamente() {
+    override fun darDeBajaUsuarioCorrectamente(usuario: MdUsuario) {
         var uEmail= verCuenta.etxNombre.text.toString()
         var uClave= verCuenta.EdtsClave.text.toString()
         verCuenta.BtnDeBaja.setOnClickListener {
@@ -65,28 +69,28 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
         }
     }
 
-    override fun actualizarContraseñaCorrectamente() {
+    override fun actualizarContraseñaCorrectamente(uEmail:String, uClave:String ) {
         var nClave= verCuenta.EdtNuevaClave.text.toString()
         var rClave= verCuenta.EdtRepetirNuevaClave.text.toString()
         verCuenta.BtnDeCambiarClave.setOnClickListener {
-            cargandoNuevaClave(true)
+            mostrarCargandoNuevaClave(true)
 
             if(nClave.isNotEmpty()
                 && rClave.isNotEmpty()
                 && nClave.equals(rClave)){
                 lifecycleScope.launch(Dispatchers.Main){
                     withContext(Dispatchers.IO){
-                        controlador.actualizarContraseña(idUsuario.toString(),nClave)
+                        controlador.actualizarContraseña(usuario.toString(),nClave)
                     }
-                }.invokeOnCompletion { cargandoNuevaClave(false) }
+                }.invokeOnCompletion { mostrarCargandoNuevaClave(false) }
             }  else{
                 Toast.makeText(this,"Error: Posiblemente los campos estén vacíos o no sea la misma clave", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun cargandoNuevaClave(esGuardada: Boolean){
-        if(esGuardada){
+    private fun mostrarCargandoNuevaClave(mostrar: Boolean){
+        if(mostrar){
          verCuenta.ProcesandoClave.visibility= View.VISIBLE
             verCuenta.ModificarClave.visibility= View.VISIBLE
                 verCuenta.BtnDeBaja.visibility= View.GONE
@@ -97,8 +101,8 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
         }
     }
 
-    private fun cargandoSalida(salida:Boolean){
-        if(salida){
+    private fun mostrarCargandoSalida(mostrar:Boolean){
+        if(mostrar){
             verCuenta.CargandoSalida.visibility= View.VISIBLE
             verCuenta.BtnDeSalir.visibility= View.GONE
         }else{

@@ -1,18 +1,17 @@
 package com.example.ticktask.manager
 
 import android.app.Activity
-import com.example.ticktask.manager.vista.IMaDeGuardarTarea
+import com.example.ticktask.manager.interfaz.IMaDeGuardarTarea
+import com.example.ticktask.memoria.AppContextProvider
 import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdTarea
-import com.example.ticktask.modelo.MdUsuario
-import com.example.ticktask.vista.viInterfaz.ViDeGuardarTarea
+import com.example.ticktask.vista.interfaz.ViDeGuardarTarea
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
 
 class MaDeGuardarTarea : IMaDeGuardarTarea {
     private var vista: ViDeGuardarTarea? = null
-    private var dbManager: GestionDeDatos = GestionDeDatos().getInstance()
+    val dbManager: GestionDeDatos = GestionDeDatos.getInstance(AppContextProvider.getContext())
 
     override fun entrarAVista(view: Activity) {
         this.vista = view as ViDeGuardarTarea
@@ -43,39 +42,13 @@ class MaDeGuardarTarea : IMaDeGuardarTarea {
     }
 
 
-    override suspend fun actualizarTarea(
-        idTarea: Int,
-        idDeUsuario: MdUsuario,
-        titulo: String,
-        descripcion: String,
-        prioridad: String,
-        estado: String,
-        entrega: Date
-    ) {
-        val noHayError = dbManager.actualizarDatosDeTarea(
-            idTarea,
-            idDeUsuario,
-            titulo,
-            descripcion,
-            prioridad,
-            estado,
-            entrega
-        )
-        withContext(Dispatchers.Main) {
-            if (noHayError) {
-                vista?.actualizarTarea()
-            } else {
-                vista?.errorDeConexion()
-            }
-        }
-    }
 
     override suspend fun guardarTareaEnMemoria(tarea: MdTarea) {
-        val noHayError = dbManager.añadirTareaEnMemoria(tarea)
+        val noHayError = dbManager.crearTarea(tarea)
         withContext(Dispatchers.Main) {
             if (noHayError) {
                 //si no hay error al registral el usuario
-                vista?.actualizarTarea()
+                vista?.guardarTarea()
             } else {
                 vista?.errorDeConexion()
             }
