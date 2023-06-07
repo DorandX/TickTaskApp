@@ -6,4 +6,5 @@ import com.example.ticktask.modelo.MdTarea
 interface IMaDeGuardarTarea : IMaVistas{
     suspend fun validarTarea(tarea: MdTarea)
     suspend fun guardarTareaEnMemoria(tarea:MdTarea)
+
 }

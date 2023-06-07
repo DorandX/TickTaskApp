@@ -1,6 +1,7 @@
 package com.example.ticktask.vista
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -10,9 +11,9 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.R
 import com.example.ticktask.databinding.VerGuardarTareaBinding
+import com.example.ticktask.databinding.VerTareasBinding
 import com.example.ticktask.manager.MaDeGuardarTarea
 import com.example.ticktask.manager.interfaz.IMaDeGuardarTarea
-import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.Info
@@ -26,6 +27,7 @@ import java.util.*
 
 class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
     private lateinit var guardarTarea: VerGuardarTareaBinding
+    private lateinit var verTarea: VerTareasBinding
     private var idTarea: Int = 0
     private var idDeUsuario: MdUsuario?=null
     private var controlador: IMaDeGuardarTarea = MaDeGuardarTarea()
@@ -40,18 +42,19 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
         btnFechaEntrega.setOnClickListener {
             seleccionarFecha()
         }
-        val btnDeGuardarTarea = guardarTarea.BtnDeSalvarTarea
-        btnDeGuardarTarea.setOnClickListener {
+        guardarTarea.BtnDeSalvarTarea.setOnClickListener {
+            // Llamar al método guardarTarea()
             guardarTarea()
         }
-        cargarVistas()
-
-    }
-
-    private fun cargarVistas() {
-        seleccionarEstado()
-        seleccionarPrioridad()
-        seleccionarFecha()
+        guardarTarea.EstadoDeTarea.setOnClickListener {
+            seleccionarEstado()
+        }
+        guardarTarea.BtnDeEntregaDeTarea.setOnClickListener{
+            seleccionarFecha()
+        }
+        guardarTarea.PrioridadDeTarea.setOnClickListener {
+            seleccionarPrioridad()
+        }
     }
 
     private fun seleccionarPrioridad() {
@@ -141,32 +144,35 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
             verProcesarDatos(true)
             lifecycleScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
-                        MdTarea(
-                            idTarea,
-                            idDeUsuario!!.idUsuario,
-                            titulo,
-                            descripcion,
-                            prioridad,
-                            estado,
-                            fechaEntrega as Date?
-                        )
+                    MdTarea(
+                        idTarea,
+                        idDeUsuario!!,
+                        titulo,
+                        descripcion,
+                        prioridad,
+                        estado,
+                        fechaEntrega as Date?
+                    )
+
                     }
                 }
             }
         }
 
-    /**
-     * Si el usuario edita la tarea, este actualiza los nuevos datos colocados y los guarda.
-     */
 
-    private fun verProcesarDatos(estaCargando: Boolean) {
-        if (estaCargando) {
-            guardarTarea.cargandoTarea.visibility = View.VISIBLE
-            guardarTarea.BtnDeSalvarTarea.visibility = View.GONE
-        } else {
-            guardarTarea.BtnDeSalvarTarea.visibility = View.VISIBLE
-            guardarTarea.cargandoTarea.visibility = View.GONE
+            /**
+             * Si el usuario edita la tarea, este actualiza los nuevos datos colocados y los guarda.
+             */
+
+            private fun verProcesarDatos(estaCargando: Boolean) {
+                if (estaCargando) {
+                    guardarTarea.cargandoTarea.visibility = View.VISIBLE
+                    guardarTarea.BtnDeSalvarTarea.visibility = View.GONE
+                } else {
+                    guardarTarea.BtnDeSalvarTarea.visibility = View.VISIBLE
+                    guardarTarea.cargandoTarea.visibility = View.GONE
+                }
+            }
+
         }
-    }
-}
 

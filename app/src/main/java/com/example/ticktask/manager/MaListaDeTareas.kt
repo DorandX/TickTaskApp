@@ -21,7 +21,7 @@ class MaListaDeTareas : IMaListaDeTarea {
     }
 
     override fun salirDeVista() {
-        this.vista = null
+        System.exit(0)
     }
 
     override fun aplicarEstado(filtro: Int, listaDeTareas: ArrayList<MdTarea>) {
@@ -86,31 +86,31 @@ class MaListaDeTareas : IMaListaDeTarea {
             Variables.ITEM_TITULO, 0 -> {
                 //si el ordenamiento es por nombre, se obtiene la lista de tareas por titulo
                 listaDeTareas =
-                    dbManager.ordenarTareaSegunId(idTarea, idUsuario.idUsuario, "titulo", ascOrder)
+                    dbManager.ordenarTareaSegunId(idTarea, idUsuario, "titulo", ascOrder)
             }
             Variables.ITEM_DESCRIPCION, 0 -> {
                 //Si se ordena por descripción, se obtiene la lista de tareas por descripcion
                 listaDeTareas = dbManager.ordenarTareaSegunId(
-                    idTarea, idUsuario.idUsuario, "descripcion",
+                    idTarea, idUsuario, "descripcion",
                     ascOrder
                 )
             }
             Variables.ITEM_PRIORIDAD, 0 -> {
                 //Si se ordena segun prioridad, se obtiene la lista de tarea segun prioridad
                 listaDeTareas = dbManager.ordenarTareaSegunId(
-                    idTarea, idUsuario.idUsuario, "prioridad",
+                    idTarea, idUsuario, "prioridad",
                     ascOrder
                 )
             }
             Variables.ITEM_ESTADO, 0 -> {
                 //Si se ordena según estado, se obtiene la lista de tarea segun estado
                 listaDeTareas =
-                    dbManager.ordenarTareaSegunId(idTarea, idUsuario.idUsuario, "estado", ascOrder)
+                    dbManager.ordenarTareaSegunId(idTarea, idUsuario, "estado", ascOrder)
             }
             Variables.ITEM_ENTREGA, 0 -> {
                 // Si se ordena segun fecha de entrega, se obtiene la lista, segun entrega.
                 listaDeTareas = dbManager.ordenarTareaSegunId(
-                    idTarea, idUsuario.idUsuario, "entrega",
+                    idTarea, idUsuario, "entrega",
                     ascOrder
                 )
             }

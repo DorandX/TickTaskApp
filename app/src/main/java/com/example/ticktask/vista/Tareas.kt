@@ -1,5 +1,6 @@
 package com.example.ticktask.vista
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
@@ -23,7 +24,6 @@ import com.example.ticktask.databinding.VerItemDeTareaBinding
 import com.example.ticktask.databinding.VerTareasBinding
 import com.example.ticktask.manager.MaListaDeTareas
 import com.example.ticktask.manager.interfaz.IMaListaDeTarea
-import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.DeslizaYElimina
@@ -44,7 +44,6 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
     //declaramos las variables de nuestras pantallas
     private lateinit var verLista: VerTareasBinding
     private lateinit var verTareas: VerItemDeTareaBinding
-    private lateinit var crearTarea: VerGuardarTareaBinding
     private lateinit var idDeUsuario: MdUsuario
     private var controlador: IMaListaDeTarea = MaListaDeTareas()
 
@@ -53,7 +52,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
     private var idTarea: Int = 0
     private var ldTareas = ArrayList<MdTarea>()
     private var ldTotalTareas = ArrayList<MdTarea>()
-    private var adaptador = AdTarea(ldTareas, this)
+    private lateinit var adaptador: AdTarea
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,20 +61,11 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         verLista = VerTareasBinding.inflate(layoutInflater)
         setContentView(verLista.root)
         controlador.entrarAVista(this)
-        cargarVistas()
-
-    }
-
-    private fun cargarVistas() {
-        cargarOrdenDeTareas()
-        ordenarEntrada()
-        cargarOrdenDeTareasPorEstado()
-        clickEn()
         deslizar()
-
-    }
-
-    private fun clickEn() {
+        val layoutManager = LinearLayoutManager(this)
+        verLista.entradaItemsTareas.layoutManager = layoutManager
+        adaptador= AdTarea(ldTareas,this)
+        verLista.entradaItemsTareas.adapter= adaptador
         verLista.ordenPorEstado.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
@@ -89,6 +79,13 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
+
+        verLista.nuevaTarea.setOnClickListener {
+            //Nos dirigiremos a la pantalla de nueva tarea
+            val irACrearTarea = Intent(this, GuardarTarea::class.java)
+            startActivity(irACrearTarea)
+            finish()
+        }
         verLista.ordenTareas.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
@@ -98,22 +95,24 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             ) {
                 ordenarListaPorId(position)
             }
-
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                Toast.makeText(this@Tareas,"Ningún elemento seleccionado", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@Tareas, "Ningún elemento seleccionado", Toast.LENGTH_SHORT)
+                    .show()
             }
-        }
-        verLista.nuevaTarea.setOnClickListener {
-            //Nos dirigiremos a la pantalla de nueva tarea
-            val irACrearTarea = Intent(this, GuardarTarea::class.java)
-            startActivity(irACrearTarea)
-            finish()
         }
         verLista.BtnVerPreferencias.setOnClickListener {
             val irACuenta = Intent(this, Cuenta::class.java)
             startActivity(irACuenta)
             finish()
         }
+         ordenarTareasPorEstado()
+
+        verLista.BtnOrdenAsc.setOnClickListener { ordenarEntrada() }
+        verLista.BtnOrdenDesc.setOnClickListener{
+            cargarOrdenDeTareas()
+        }
+
+
     }
 
 
@@ -178,7 +177,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             withContext(Dispatchers.IO) {
                 controlador.ordenarTareas(
                     idTarea,
-                    idDeUsuario!!,
+                    idDeUsuario,
                     position,
                     verLista.BtnOrdenAsc.visibility == View.VISIBLE
                 )
@@ -193,14 +192,13 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             withContext(Dispatchers.IO) {
                 idDeUsuario?.let {
                     controlador.ordenarTareas(
-                        idTarea, it,Variables.ITEM_TITULO,
+                        idTarea, it, Variables.ITEM_TITULO,
                         verLista.BtnOrdenAsc.visibility == View.VISIBLE
                     )
                 }
             }
         }.invokeOnCompletion {
             verCargarDatos(false)
-            clickEn()
         }
     }
 
@@ -229,6 +227,9 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             }
         }
     }
+
+
+
     override fun actualizarTarea() {
         val titulo = verTareas.TituloDeTarea.text.toString()
         val descripcion = verTareas.DescripcionDeTarea.text.toString()
@@ -248,7 +249,15 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             try {
                 val fechaEntrega = formatoFecha.parse(fechaEntregaText)
 
-                val tarea = MdTarea(idTarea, idDeUsuario.idUsuario, titulo, descripcion, prioridad, estado, fechaEntrega as Date?)
+                val tarea = MdTarea(
+                    idTarea,
+                    idDeUsuario,
+                    titulo,
+                    descripcion,
+                    prioridad,
+                    estado,
+                    fechaEntrega as Date?
+                )
 
                 lifecycleScope.launch(Dispatchers.Main) {
                     withContext(Dispatchers.IO) {
@@ -263,7 +272,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         }
     }
 
-    private fun cargarOrdenDeTareasPorEstado() {
+    private fun ordenarTareasPorEstado() {
         verLista.ordenPorEstado.adapter = object : ArrayAdapter<String>(
             this, R.layout.ver_item_simple,
             resources.getStringArray(R.array.iniciar_estado_de_tarea)
@@ -312,11 +321,11 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
     }
 
 
-
+    @SuppressLint("NotifyDataSetChanged")
     override fun aplicarFiltroEnVista(listaDeTareas: ArrayList<MdTarea>) {
         ldTareas.clear()
         ldTareas.addAll(listaDeTareas)
-        adaptador?.notifyDataSetChanged()
+        adaptador.notifyDataSetChanged()
     }
 
     override fun errorDeConexion() {
@@ -326,5 +335,4 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             }
         }.invokeOnCompletion { verCargarDatos(false) }
     }
-
 }

@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
+        android:enableOnBackInvokedCallback="true"
         android:name=".memoria.AppContextProvider"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,7 +16,7 @@
         android:roundIcon="@mipmap/ticktask_logo_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TickTask"
-        tools:targetApi="31">
+        tools:targetApi="tiramisu">
         <activity
             android:name=".vista.GuardarTarea"
             android:exported="false"

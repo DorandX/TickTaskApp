@@ -17,33 +17,35 @@ class ManagerDeInicio : IMaInicio {
     }
 
     override fun salirDeVista() {
-        this.vista = null
+        System.exit(0)
     }
 
 
-    override suspend fun esUnUsuarioValido(uEmail: String, uClave: String) {
+    override suspend fun esUnUsuarioValido(uEmail: String, uClave: String): Boolean {
         val isValidUser = dbManager.validarUsuario(uEmail, uClave)
-        if (isValidUser == null) {
-            // si hay un error en la base de datos se muestra un mensaje de error
-            withContext(Dispatchers.Main) {
-                vista?.errorEnConexion()
-            }
-            return
-        }
-        if (isValidUser) {
-            // si el usuario es valido se obtiene el id del usuario
-            val idUsuario = dbManager.verificarUsuario(uEmail,uClave)
-            withContext(Dispatchers.Main) {
-                if (idUsuario==null) {
+        return when {
+            isValidUser == null -> {
+                withContext(Dispatchers.Main) {
                     vista?.errorEnConexion()
-                    return@withContext
                 }
-                vista?.esUnUsuarioValido(uEmail,uClave)
+                false
             }
-        } else {
-            // si el usuario no es valido se muestra un mensaje de error
-            withContext(Dispatchers.Main) {
-                vista?.esUnUsuarioNoValido()
+            isValidUser -> {
+                val idUsuario = dbManager.verificarUsuario(uEmail, uClave)
+                withContext(Dispatchers.Main) {
+                    if (idUsuario == null) {
+                        vista?.errorEnConexion()
+                        return@withContext false
+                    }
+                    vista?.esUnUsuarioValido(uEmail, uClave)
+                }
+                true
+            }
+            else -> {
+                withContext(Dispatchers.Main) {
+                    vista?.esUnUsuarioNoValido()
+                }
+                false
             }
         }
     }

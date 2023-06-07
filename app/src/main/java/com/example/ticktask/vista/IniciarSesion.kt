@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.view.Window
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerIniciarSesionBinding
 import com.example.ticktask.manager.ManagerDeInicio
@@ -14,6 +15,7 @@ import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.utilidades.Info
 import com.example.ticktask.vista.interfaz.ViDeInicio
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -28,13 +30,25 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
         setContentView(binding.root)
         gestion.entrarAVista(this)
 
-        cargarVista()
+        binding.BtnDeInicio.setOnClickListener {
+            cargarDatos(true)
+            lifecycleScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.IO) {
+                    gestion.esUnUsuarioValido(
+                        binding.EtqDeEmail.text.toString(),
+                        binding.EdtClave.text.toString()
+                    )
+                    iniciarSesion()
+                }
+            }.invokeOnCompletion { cargarDatos(false) }
+        }
+
+        binding.BtnDeRegistro.setOnClickListener {
+            startActivity(Intent(this, Registro::class.java))
+            finish()
+        }
     }
 
-    private fun cargarVista() {
-        iniciarSesion()
-        clickEn()
-    }
 
     //Metodo que guarda la sesión del usuario.
     private fun iniciarSesion() {
@@ -59,27 +73,7 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
         }
     }
 
-    private fun clickEn() {
-            binding.BtnDeInicio.setOnClickListener {
-                cargarDatos(true)
-                lifecycleScope.launch(Dispatchers.Main) {
-                    withContext(Dispatchers.IO) {
-                        gestion.esUnUsuarioValido(
-                            binding.EtqDeEmail.text.toString(),
-                            binding.EdtClave.text.toString()
-                        )
-                    }
-                }.invokeOnCompletion { cargarDatos(false) }
-            }
-
-            binding.BtnDeRegistro.setOnClickListener {
-                startActivity(Intent(this, Registro::class.java))
-                finish()
-            }
-        }
-
-
-        override fun errorEnConexion() {
+    override fun errorEnConexion() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 Info.errorDeConexion(this@IniciarSesion)

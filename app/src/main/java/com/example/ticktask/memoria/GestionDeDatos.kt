@@ -15,14 +15,12 @@ import com.example.ticktask.memoria.Datos.ENTREGA_DE_TAREA
 import com.example.ticktask.memoria.Datos.ESTADO_DE_TAREA
 import com.example.ticktask.memoria.Datos.ID_DE_PROPIETARIO
 import com.example.ticktask.memoria.Datos.ID_DE_TAREA
-import com.example.ticktask.memoria.Datos.ID_USUARIO
 import com.example.ticktask.memoria.Datos.TITULO_DE_TAREA
 import com.example.ticktask.memoria.Datos.NOMBRE_DE_USUARIO
 import com.example.ticktask.memoria.Datos.PRIORIDAD
 import com.example.ticktask.memoria.Datos.TABLA_DE_TAREA
 import com.example.ticktask.memoria.Datos.TABLA_DE_USUARIO
 import com.example.ticktask.memoria.Datos.TELEFONO_DE_USUARIO
-import com.example.ticktask.memoria.Datos.TICKTASK_BDD_NOMBRE
 import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import java.sql.*
@@ -247,14 +245,14 @@ override fun onCreate(db: SQLiteDatabase) {
      */
     fun crearTarea(nTarea: MdTarea): Boolean {
         var stmt: PreparedStatement? = null
+        var idDeUsuario = nTarea.idDeUsuario.idUsuario
         var noError = true
         try {
-
             val query =
                 "INSERT INTO $TABLA_DE_TAREA ($ID_DE_TAREA, $ID_DE_PROPIETARIO, $TITULO_DE_TAREA, $DESCRIPCION_DE_TAREA, $PRIORIDAD, $ESTADO_DE_TAREA, $ENTREGA_DE_TAREA) VALUES (?, ?, ?, ?, ?, ?, ?)"
             stmt = conexion?.prepareStatement(query)
             stmt?.setInt(1, nTarea.idDeTarea)
-            stmt?.setInt(2, nTarea.idDeUsuario)
+            stmt?.setInt(2, idDeUsuario)
             stmt?.setString(3, nTarea.titulo)
             stmt?.setString(4, nTarea.descripcion)
             stmt?.setString(5, nTarea.prioridad)
@@ -269,6 +267,7 @@ override fun onCreate(db: SQLiteDatabase) {
                 try {
                     stmt.close()
                 } catch (sqlEx: SQLException) {
+                    sqlEx.printStackTrace()
                 }
             }
         }
@@ -307,7 +306,7 @@ override fun onCreate(db: SQLiteDatabase) {
      */
     fun ordenarTareaSegunId(
         idTarea: Int,
-        idDeUsuario: Int,
+        idDeUsuario: MdUsuario,
         order: String? = null,
         ascOrder: Boolean = true
     ): ArrayList<MdTarea>? {
@@ -371,7 +370,7 @@ override fun onCreate(db: SQLiteDatabase) {
             preparedStatement?.setString(4, tarea.estado)
             preparedStatement?.setDate(5, tarea.entrega)
             preparedStatement?.setInt(6, tarea.idDeTarea)
-            preparedStatement?.setInt(7, tarea.idDeUsuario)
+            preparedStatement?.setInt(7, tarea.idDeUsuario.idUsuario)
             preparedStatement?.executeUpdate()
         } catch (ex: SQLException) {
             noHayError = false
@@ -406,8 +405,4 @@ override fun onCreate(db: SQLiteDatabase) {
         }
         return noHayError
     }
-
-
-
-
 }

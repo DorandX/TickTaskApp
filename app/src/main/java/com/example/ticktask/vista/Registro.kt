@@ -22,37 +22,19 @@ class Registro : AppCompatActivity(), ViDeRegistro {
 
     private lateinit var binding: VerRegistroBinding
     private var idUsuario: Int = 0
-    private var gestion: IMaRegistro= ManagerDeRegistro()
-    private lateinit var dbManager: GestionDeDatos
+    private var gestion: IMaRegistro = ManagerDeRegistro()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-        binding= VerRegistroBinding.inflate(layoutInflater)
+        binding = VerRegistroBinding.inflate(layoutInflater)
         setContentView(binding.root)
         gestion.entrarAVista(this)
-        cargarVistas()
-    }
 
-    private fun validarCampos(): Boolean {
-        val nombre = binding.txtNombre.text.toString()
-        val apellido = binding.txApellido.text.toString()
-        val email = binding.etxEmail.text.toString()
-        val telefono = binding.etxMovil.text.toString()
-        val clave = binding.etxClave.text.toString()
-
-        if (nombre.isEmpty() || apellido.isEmpty() || email.isEmpty()
-            || telefono.isEmpty() || clave.isEmpty()) {
-            Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
-            return false
-        }
-
-        return true
-    }
-
-    private fun cargarVistas() {
         val email = binding.etxEmail.text.toString()
         val clave = binding.etxClave.text.toString()
+
         binding.btnUnirme.setOnClickListener {
             if (validarCampos()) {
                 cargandoDatos(true)
@@ -65,15 +47,37 @@ class Registro : AppCompatActivity(), ViDeRegistro {
         }
     }
 
-    private fun  cargandoDatos(mostrarCarga: Boolean){
-        if(mostrarCarga){
-            binding.cargandoRegistro.visibility= View.VISIBLE
-            binding.tvEstasListo.visibility= View.GONE
-        } else{
-            binding.cargandoRegistro.visibility= View.GONE
-            binding.tvEstasListo.visibility= View.VISIBLE
+    private fun validarCampos(): Boolean {
+        val nombre = binding.txtNombre.text.toString()
+        val apellido = binding.txApellido.text.toString()
+        val email = binding.etxEmail.text.toString()
+        val telefono = binding.etxMovil.text.toString()
+        val clave = binding.etxClave.text.toString()
+
+        if (nombre.isEmpty() || apellido.isEmpty() || email.isEmpty()
+            || telefono.isEmpty() || clave.isEmpty()
+        ) {
+            Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        return true
+    }
+
+    private fun cargarVistas() {
+
+    }
+
+    private fun cargandoDatos(mostrarCarga: Boolean) {
+        if (mostrarCarga) {
+            binding.cargandoRegistro.visibility = View.VISIBLE
+            binding.tvEstasListo.visibility = View.GONE
+        } else {
+            binding.cargandoRegistro.visibility = View.GONE
+            binding.tvEstasListo.visibility = View.VISIBLE
         }
     }
+
     override fun errorEnConexion() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
@@ -83,7 +87,7 @@ class Registro : AppCompatActivity(), ViDeRegistro {
     }
 
     override fun existeElUsuario() {
-        Toast.makeText(this,"El usuario, ya exise", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "El usuario, ya exise", Toast.LENGTH_SHORT).show()
     }
 
     override fun guardarUsuario() {
@@ -95,21 +99,25 @@ class Registro : AppCompatActivity(), ViDeRegistro {
         cargandoDatos(true)
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
-                gestion.agregarUsuario(MdUsuario(idUsuario, nombre, apellido, email, telefono, clave))
+                gestion.agregarUsuario(
+                    MdUsuario(
+                        idUsuario,
+                        nombre,
+                        apellido,
+                        email,
+                        telefono,
+                        clave
+                    )
+                )
             }
         }.invokeOnCompletion { cargandoDatos(false) }
     }
 
     override fun usuarioAgregadoExitoso() {
-        Info.mostrarMensaje(this,"Usuario agregado correctamente")
-        val irATareas= Intent(this, Tareas::class.java)
+        Info.mostrarMensaje(this, "Usuario agregado correctamente")
+        val irATareas = Intent(this, Tareas::class.java)
         startActivity(irATareas)
         finish()
     }
-
-    @Override
-    override fun onDestroy() {
-        gestion.salirDeVista()
-        super.onDestroy()
-    }
 }
+

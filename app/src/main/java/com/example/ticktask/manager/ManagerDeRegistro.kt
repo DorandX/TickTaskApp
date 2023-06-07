@@ -22,7 +22,7 @@ class ManagerDeRegistro : IMaRegistro {
 
     //Método para desasociar manager con la interfaz
     override fun salirDeVista() {
-        this.vista = null
+        System.exit(0)
     }
 
     //Verificamos si existe o no el usuario.

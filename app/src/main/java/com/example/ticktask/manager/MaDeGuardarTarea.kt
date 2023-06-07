@@ -18,7 +18,7 @@ class MaDeGuardarTarea : IMaDeGuardarTarea {
     }
 
     override fun salirDeVista() {
-        this.vista = null
+        System.exit(0)
     }
 
     override suspend fun validarTarea(tarea: MdTarea) {
@@ -42,18 +42,26 @@ class MaDeGuardarTarea : IMaDeGuardarTarea {
     }
 
 
-
     override suspend fun guardarTareaEnMemoria(tarea: MdTarea) {
-        val noHayError = dbManager.crearTarea(tarea)
-        withContext(Dispatchers.Main) {
-            if (noHayError) {
-                //si no hay error al registral el usuario
-                vista?.guardarTarea()
-            } else {
+        try {
+            val tareaCreadaExitosamente = dbManager.crearTarea(tarea)
+            withContext(Dispatchers.Main) {
+                if (tareaCreadaExitosamente) {
+                    //si no hay error al registral el usuario
+                    vista?.guardarTarea()
+                } else {
+                    vista?.errorDeConexion()
+                }
+            }
+        } catch (e: Exception) {
+            // Maneja el error en caso de que ocurra una excepción
+            // Por ejemplo, puedes mostrar un mensaje de error en la vista
+            withContext(Dispatchers.Main) {
                 vista?.errorDeConexion()
             }
         }
     }
-
-
 }
+
+
+

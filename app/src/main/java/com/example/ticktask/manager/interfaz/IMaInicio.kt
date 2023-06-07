@@ -4,5 +4,5 @@ import com.example.ticktask.manager.interfaz.vista.IMaVistas
 
 interface IMaInicio: IMaVistas {
 
-    suspend fun esUnUsuarioValido(uEmail: String, uClave:String)
+    suspend fun esUnUsuarioValido(uEmail: String, uClave:String): Boolean
 }
