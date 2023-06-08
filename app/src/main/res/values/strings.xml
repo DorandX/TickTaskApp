@@ -28,4 +28,6 @@
     <string name="RepetirClave">Repetir clave</string>
     <string name="GuardarClave">ACTUALIZAR</string>
     <string name="NuevaClaveDeUsuario">Nueva clave</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

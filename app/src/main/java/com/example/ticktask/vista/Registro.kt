@@ -6,24 +6,16 @@ import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.widget.Toast
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerRegistroBinding
 import com.example.ticktask.manager.ManagerDeRegistro
 import com.example.ticktask.manager.interfaz.IMaRegistro
-import com.example.ticktask.memoria.GestionDeDatos
-import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
-import com.example.ticktask.utilidades.Info
 import com.example.ticktask.vista.interfaz.ViDeRegistro
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.sql.Date
 import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.properties.Delegates
 
 class Registro : AppCompatActivity(), ViDeRegistro {
 
@@ -87,7 +79,8 @@ class Registro : AppCompatActivity(), ViDeRegistro {
     override fun errorEnConexion() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
-                Info.errorDeConexion(this@Registro)
+                Toast.makeText(this@Registro, "Ningún elemento seleccionado", Toast.LENGTH_SHORT)
+                    .show()
             }
         }.invokeOnCompletion { cargandoDatos(false) }
     }
@@ -106,7 +99,8 @@ class Registro : AppCompatActivity(), ViDeRegistro {
 
         if (nombre.isNullOrEmpty() || apellido.isNullOrEmpty() || email.isNullOrEmpty() || clave.isNullOrEmpty()) {
             runOnUiThread {
-                Info.mostrarMensaje(this, "Debe llenar los campos obligatorios")
+                Toast.makeText(this@Registro, "Faltan elementos por rellenar", Toast.LENGTH_SHORT)
+                    .show()
             }
         } else {
             try {
@@ -123,15 +117,15 @@ class Registro : AppCompatActivity(), ViDeRegistro {
                 }
                 usuarioGuardado(usuario)
             } catch (ex: ParseException) {
-                runOnUiThread {
-                    Info.mostrarMensaje(this, "Error al guardar el usuario")
-                }
+                Toast.makeText(this@Registro, "Error, no se ha podido guardar", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
 
     override fun usuarioGuardado(usuario: MdUsuario) {
-        Info.mostrarMensaje(this, "Usuario guardado correctamente")
+        Toast.makeText(this@Registro, "Guardado exitosamente", Toast.LENGTH_SHORT)
+            .show()
         val irATareas = Intent(this, Tareas::class.java)
         startActivity(irATareas)
         finish()

@@ -10,7 +10,6 @@ import com.example.ticktask.databinding.VerCuentaBinding
 import com.example.ticktask.manager.MaDeCuenta
 import com.example.ticktask.manager.interfaz.IMaDeCuenta
 import com.example.ticktask.modelo.MdUsuario
-import com.example.ticktask.utilidades.Info
 import com.example.ticktask.vista.interfaz.ViDeCuenta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,7 +43,8 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
     override fun errorDeConexion() {
         lifecycleScope.launch(Dispatchers.Main){
             withContext(Dispatchers.IO){
-                Info.errorDeConexion(this@Cuenta)
+                Toast.makeText(this@Cuenta, "Error de conexion", Toast.LENGTH_SHORT)
+                    .show()
             }
         }.invokeOnCompletion { mostrarCargandoSalida (false)}
 

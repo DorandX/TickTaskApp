@@ -1,7 +1,7 @@
 package com.example.ticktask.manager
 
 import android.app.Activity
-import com.example.ticktask.manager.interfaz.IMaDeGuardarTarea
+import com.example.ticktask.manager.interfaz.IMaDeCrearTarea
 import com.example.ticktask.memoria.AppContextProvider
 import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdTarea
@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-class MaDeGuardarTarea : IMaDeGuardarTarea {
+class MaDeCrearTarea : IMaDeCrearTarea {
     private lateinit var vista: ViDeGuardarTarea
     private val dbManager: GestionDeDatos = GestionDeDatos.getInstance(AppContextProvider.getContext())
 

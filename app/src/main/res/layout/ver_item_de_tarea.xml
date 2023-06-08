@@ -14,18 +14,28 @@
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/btnEstadoDeTarea"
+            android:id="@+id/TareaIncompleta"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="center_vertical"
             android:layout_marginHorizontal="10dp"
             android:backgroundTint="@color/white"
-            android:contentDescription="btnCompletar"
+            android:contentDescription="estadoIncompleto"
             android:scaleX="1.2"
             android:scaleY="1.2"
             android:src="@drawable/vc_icompleto" />
 
-
+        <ImageButton
+            android:id="@+id/TareaCompletada"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginHorizontal="10dp"
+            android:backgroundTint="@color/white"
+            android:contentDescription="estadoCompletado"
+            android:scaleX="1.2"
+            android:scaleY="1.2"
+            android:src="@drawable/vc_tic" />
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"

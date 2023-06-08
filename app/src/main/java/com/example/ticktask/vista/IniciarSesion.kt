@@ -11,12 +11,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerIniciarSesionBinding
 import com.example.ticktask.manager.ManagerDeInicio
 import com.example.ticktask.manager.interfaz.IMaInicio
-import com.example.ticktask.memoria.GestionDeDatos
 import com.example.ticktask.modelo.MdUsuario
-import com.example.ticktask.utilidades.Info
 import com.example.ticktask.vista.interfaz.ViDeInicio
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -78,7 +75,8 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
     override fun errorEnConexion() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
-                Info.errorDeConexion(this@IniciarSesion)
+                Toast.makeText(this@IniciarSesion, "Error de conexion", Toast.LENGTH_SHORT)
+                    .show()
             }
         }.invokeOnCompletion { cargarDatos(false) }
     }
@@ -91,7 +89,8 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
     }
 
     override fun esUnUsuarioNoValido() {
-        Info.mostrarMensaje(this, "Usuario o contraseña incorrectos")
+        Toast.makeText(this@IniciarSesion, "Es un usuario valido", Toast.LENGTH_SHORT)
+            .show()
         cargarDatos(false)
     }
 }

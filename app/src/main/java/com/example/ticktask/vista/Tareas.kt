@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
@@ -28,15 +27,12 @@ import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.DeslizaYElimina
 import com.example.ticktask.utilidades.DeslizarYEdita
-import com.example.ticktask.utilidades.Info
 import com.example.ticktask.utilidades.Variables
 import com.example.ticktask.vista.interfaz.ViDeListaDeTareas
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.sql.Date
 import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -66,7 +62,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         controlador.entrarAVista(this)
         val layoutManager = LinearLayoutManager(this)
         verLista.entradaItemsTareas.layoutManager = layoutManager
-        adaptador= AdTarea(ldTareas,this)
+        adaptador= AdTarea(ldTareas,this,verTareas)
         mostrarTodasLasTareas(ldTareas)
         verLista.entradaItemsTareas.adapter= adaptador
         verLista.ordenPorEstado.onItemSelectedListener =
@@ -84,9 +80,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             }
         verLista.nuevaTarea.setOnClickListener {
             //Nos dirigiremos a la pantalla de nueva tarea
-            val irACrearTarea = Intent(this, GuardarTarea::class.java)
-            startActivity(irACrearTarea)
-            finish()
+            CrearTarea(tarea).show(supportFragmentManager,"Nueva Tarea")
         }
         verLista.ordenTareas.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -117,8 +111,8 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
             actualizarTarea(tarea)
         }
 
-
     }
+
 
 
     //Metodo para configurar el deslizar para editar y/o borrar
@@ -235,9 +229,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
 
     override fun actualizarTarea(tarea: MdTarea) {
         if (tarea.titulo.isEmpty() && tarea.estado.isEmpty() && tarea.entrega.toString().isEmpty()) {
-            runOnUiThread {
-                Info.mostrarMensaje(this, "Debe llenar los campos obligatorios")
-            }
+            Toast.makeText(this, "Ha ocurrido un error", Toast.LENGTH_SHORT).show()
         } else {
             try {
                 lifecycleScope.launch(Dispatchers.Main) {
@@ -246,9 +238,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
                     }
                 }
             } catch (ex: ParseException) {
-                runOnUiThread {
-                    Info.mostrarMensaje(this, "Error al convertir la fecha de entrega")
-                }
+                Toast.makeText(this, "Ha ocurrido un error", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -296,7 +286,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         ldTotalTareas.addAll(listaDeTareas)
         ldTareas.addAll(ldTotalTareas)
 
-        adaptador = AdTarea(ldTareas, this)
+        adaptador = AdTarea(ldTareas, this,verTareas)
         verLista.entradaItemsTareas.adapter = adaptador
         controlador.aplicarEstado(verLista.ordenPorEstado.selectedItemPosition, ldTotalTareas)
     }
