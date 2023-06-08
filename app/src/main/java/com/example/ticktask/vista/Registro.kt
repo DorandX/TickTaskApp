@@ -6,17 +6,24 @@ import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.widget.Toast
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerRegistroBinding
 import com.example.ticktask.manager.ManagerDeRegistro
 import com.example.ticktask.manager.interfaz.IMaRegistro
 import com.example.ticktask.memoria.GestionDeDatos
+import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.Info
 import com.example.ticktask.vista.interfaz.ViDeRegistro
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.sql.Date
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.properties.Delegates
 
 class Registro : AppCompatActivity(), ViDeRegistro {
 
@@ -25,16 +32,15 @@ class Registro : AppCompatActivity(), ViDeRegistro {
     private var gestion: IMaRegistro = ManagerDeRegistro()
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         binding = VerRegistroBinding.inflate(layoutInflater)
         setContentView(binding.root)
         gestion.entrarAVista(this)
-
         val email = binding.etxEmail.text.toString()
         val clave = binding.etxClave.text.toString()
-
         binding.btnUnirme.setOnClickListener {
             if (validarCampos()) {
                 cargandoDatos(true)
@@ -42,7 +48,10 @@ class Registro : AppCompatActivity(), ViDeRegistro {
                     withContext(Dispatchers.IO) {
                         gestion.verificarSiExisteUsuario(email, clave)
                     }
-                }.invokeOnCompletion { cargandoDatos(false) }
+                }.invokeOnCompletion {
+                    cargandoDatos(false)
+                    guardarUsuario()
+                }
             }
         }
     }
@@ -51,21 +60,18 @@ class Registro : AppCompatActivity(), ViDeRegistro {
         val nombre = binding.txtNombre.text.toString()
         val apellido = binding.txApellido.text.toString()
         val email = binding.etxEmail.text.toString()
-        val telefono = binding.etxMovil.text.toString()
+        val telefono = binding.etxMovil.text.toString().toInt()
         val clave = binding.etxClave.text.toString()
-
-        if (nombre.isEmpty() || apellido.isEmpty() || email.isEmpty()
-            || telefono.isEmpty() || clave.isEmpty()
+        var camposValidos = true
+        if (nombre.isEmpty() && apellido.isEmpty() && email.isEmpty() && telefono.toString()
+                .isEmpty() && clave.isEmpty()
         ) {
-            Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
-            return false
+            Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT)
+                .show()
+            camposValidos = false
         }
 
-        return true
-    }
-
-    private fun cargarVistas() {
-
+        return camposValidos
     }
 
     private fun cargandoDatos(mostrarCarga: Boolean) {
@@ -86,9 +92,10 @@ class Registro : AppCompatActivity(), ViDeRegistro {
         }.invokeOnCompletion { cargandoDatos(false) }
     }
 
-    override fun existeElUsuario() {
+    override fun existeElUsuario(usuario: MdUsuario) {
         Toast.makeText(this, "El usuario, ya exise", Toast.LENGTH_SHORT).show()
     }
+
 
     override fun guardarUsuario() {
         val nombre = binding.txtNombre.text.toString()
@@ -96,28 +103,37 @@ class Registro : AppCompatActivity(), ViDeRegistro {
         val email = binding.etxEmail.text.toString()
         val telefono = binding.etxMovil.text.toString().toInt()
         val clave = binding.etxClave.text.toString()
-        cargandoDatos(true)
-        lifecycleScope.launch(Dispatchers.Main) {
-            withContext(Dispatchers.IO) {
-                gestion.agregarUsuario(
-                    MdUsuario(
-                        idUsuario,
-                        nombre,
-                        apellido,
-                        email,
-                        telefono,
-                        clave
-                    )
-                )
+
+        if (nombre.isNullOrEmpty() || apellido.isNullOrEmpty() || email.isNullOrEmpty() || clave.isNullOrEmpty()) {
+            runOnUiThread {
+                Info.mostrarMensaje(this, "Debe llenar los campos obligatorios")
             }
-        }.invokeOnCompletion { cargandoDatos(false) }
+        } else {
+            try {
+                val usuario = MdUsuario(
+                    idUsuario,
+                    nombre,
+                    apellido,
+                    email,
+                    telefono,
+                    clave
+                )
+                lifecycleScope.launch(Dispatchers.IO) {
+                    gestion.agregarUsuario(usuario)
+                }
+                usuarioGuardado(usuario)
+            } catch (ex: ParseException) {
+                runOnUiThread {
+                    Info.mostrarMensaje(this, "Error al guardar el usuario")
+                }
+            }
+        }
     }
 
-    override fun usuarioAgregadoExitoso() {
-        Info.mostrarMensaje(this, "Usuario agregado correctamente")
+    override fun usuarioGuardado(usuario: MdUsuario) {
+        Info.mostrarMensaje(this, "Usuario guardado correctamente")
         val irATareas = Intent(this, Tareas::class.java)
         startActivity(irATareas)
         finish()
     }
 }
-

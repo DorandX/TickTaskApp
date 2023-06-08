@@ -1,8 +1,10 @@
 package com.example.ticktask.vista.interfaz
 
+import com.example.ticktask.modelo.MdUsuario
+
 interface ViDeRegistro {
     fun errorEnConexion()
-    fun existeElUsuario()
+    fun existeElUsuario(usuario: MdUsuario)
     fun guardarUsuario()
-    fun usuarioAgregadoExitoso()
+    fun usuarioGuardado(usuario: MdUsuario)
 }

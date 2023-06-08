@@ -4,6 +4,7 @@ import com.example.ticktask.modelo.MdUsuario
 
 interface ViDeCuenta {
     fun errorDeConexion()
+    fun finalizarVista()
     fun darDeBajaUsuarioCorrectamente()
     fun actualizarContraseñaCorrectamente()
 }

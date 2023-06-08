@@ -30,7 +30,7 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
         controlador.entrarAVista(this)
         verCuenta.BtnDeSalir.setOnClickListener {
             mostrarCargandoSalida(true)
-            finish()
+            controlador.salirDeVista()
         }
         verCuenta.BtnDeBaja.setOnClickListener{
             darDeBajaUsuarioCorrectamente()
@@ -50,23 +50,33 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
 
     }
 
+
     override fun darDeBajaUsuarioCorrectamente() {
         val uEmail = verCuenta.etxNombre.text.toString()
         val uClave = verCuenta.EdtsClave.text.toString()
 
         if (uEmail.isNotEmpty() && uClave.isNotEmpty()) {
             cargandoBaja(true)
-            lifecycleScope.launch(Dispatchers.Main) {
-                withContext(Dispatchers.IO) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
                     controlador.darDeBajaAUsuario(uEmail, uClave)
-                    controlador.salirDeVista()
+                    withContext(Dispatchers.Main) {
+                        // manejar la lógica de éxito aquí
+                        controlador.salirDeVista()
+                        finish()
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        // manejar la lógica de falla aquí
+                        // Mostrar el error al usuario
+                        Toast.makeText(this@Cuenta, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }.invokeOnCompletion { cargandoBaja(false) }
         } else {
             Toast.makeText(this, "Los datos son nulos o incorrectos, intentalo de nuevo", Toast.LENGTH_SHORT).show()
         }
     }
-
 
     override fun actualizarContraseñaCorrectamente() {
         var nClave= verCuenta.EdtNuevaClave.text.toString()
@@ -118,5 +128,9 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
             verCuenta.BtnDeCambiarClave.visibility= View.VISIBLE
             verCuenta.CargandoProcesos.visibility=View.GONE
         }
+    }
+
+    override fun finalizarVista() {
+        finish()
     }
 }

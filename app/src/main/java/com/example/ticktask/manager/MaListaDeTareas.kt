@@ -1,6 +1,8 @@
 package com.example.ticktask.manager
 
 import android.app.Activity
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.example.ticktask.manager.interfaz.IMaListaDeTarea
 import com.example.ticktask.memoria.AppContextProvider
 import com.example.ticktask.memoria.GestionDeDatos
@@ -67,7 +69,7 @@ class MaListaDeTareas : IMaListaDeTarea {
         val noHayError = dbManager.actualizarDatosDeTarea(tarea)
         withContext(Dispatchers.Main) {
             if (noHayError) {
-                vista?.actualizarTarea()
+                vista?.actualizarTarea(tarea)
             } else {
                 vista?.errorDeConexion()
             }
@@ -75,6 +77,7 @@ class MaListaDeTareas : IMaListaDeTarea {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun ordenarTareas(
         idTarea: Int,
         idUsuario: MdUsuario,
@@ -86,31 +89,31 @@ class MaListaDeTareas : IMaListaDeTarea {
             Variables.ITEM_TITULO, 0 -> {
                 //si el ordenamiento es por nombre, se obtiene la lista de tareas por titulo
                 listaDeTareas =
-                    dbManager.ordenarTareaSegunId(idTarea, idUsuario, "titulo", ascOrder)
+                    dbManager.ordenarTareaSegunId(idTarea, idUsuario.idUsuario, "titulo", ascOrder)
             }
             Variables.ITEM_DESCRIPCION, 0 -> {
                 //Si se ordena por descripción, se obtiene la lista de tareas por descripcion
                 listaDeTareas = dbManager.ordenarTareaSegunId(
-                    idTarea, idUsuario, "descripcion",
+                    idTarea, idUsuario.idUsuario, "descripcion",
                     ascOrder
                 )
             }
             Variables.ITEM_PRIORIDAD, 0 -> {
                 //Si se ordena segun prioridad, se obtiene la lista de tarea segun prioridad
                 listaDeTareas = dbManager.ordenarTareaSegunId(
-                    idTarea, idUsuario, "prioridad",
+                    idTarea, idUsuario.idUsuario, "prioridad",
                     ascOrder
                 )
             }
             Variables.ITEM_ESTADO, 0 -> {
                 //Si se ordena según estado, se obtiene la lista de tarea segun estado
                 listaDeTareas =
-                    dbManager.ordenarTareaSegunId(idTarea, idUsuario, "estado", ascOrder)
+                    dbManager.ordenarTareaSegunId(idTarea, idUsuario.idUsuario, "estado", ascOrder)
             }
             Variables.ITEM_ENTREGA, 0 -> {
                 // Si se ordena segun fecha de entrega, se obtiene la lista, segun entrega.
                 listaDeTareas = dbManager.ordenarTareaSegunId(
-                    idTarea, idUsuario, "entrega",
+                    idTarea, idUsuario.idUsuario, "entrega",
                     ascOrder
                 )
             }
@@ -131,6 +134,16 @@ class MaListaDeTareas : IMaListaDeTarea {
                 vista?.errorDeConexion()
                 return@withContext
             }
+        }
+    }
+    override suspend fun obtenerTodasLasTareas() {
+        val listaDeTareas = dbManager.mostrarTodasLasTareas()
+        withContext(Dispatchers.Main) {
+            if (listaDeTareas == null) {
+                vista?.errorDeConexion()
+                return@withContext
+            }
+            vista?.mostrarTodasLasTareas(listaDeTareas)
         }
     }
 }

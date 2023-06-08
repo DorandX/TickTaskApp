@@ -8,17 +8,18 @@ import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.vista.interfaz.ViDeGuardarTarea
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class MaDeGuardarTarea : IMaDeGuardarTarea {
-    private var vista: ViDeGuardarTarea? = null
-    val dbManager: GestionDeDatos = GestionDeDatos.getInstance(AppContextProvider.getContext())
+    private lateinit var vista: ViDeGuardarTarea
+    private val dbManager: GestionDeDatos = GestionDeDatos.getInstance(AppContextProvider.getContext())
 
     override fun entrarAVista(view: Activity) {
         this.vista = view as ViDeGuardarTarea
     }
 
     override fun salirDeVista() {
-        System.exit(0)
+       vista.finalizarActividad()
     }
 
     override suspend fun validarTarea(tarea: MdTarea) {
@@ -27,20 +28,19 @@ class MaDeGuardarTarea : IMaDeGuardarTarea {
             when (existeLaTarea) {
                 null -> {
                     //si existe la tarea, manda un mensaje de error
-                    vista?.errorDeConexion()
+                    vista.errorDeConexion()
                 }
                 true -> {
                     //Si existe, manda un aviso
-                    vista?.existeLaTarea()
+                    vista.existeLaTarea(tarea)
                 }
                 else -> {
                     //Si no existe, la crea.
-                    vista?.guardarTarea()
+                    vista.guardarTarea()
                 }
             }
         }
     }
-
 
     override suspend fun guardarTareaEnMemoria(tarea: MdTarea) {
         try {
@@ -48,16 +48,20 @@ class MaDeGuardarTarea : IMaDeGuardarTarea {
             withContext(Dispatchers.Main) {
                 if (tareaCreadaExitosamente) {
                     //si no hay error al registral el usuario
-                    vista?.guardarTarea()
+                    vista.guardarTarea()
                 } else {
-                    vista?.errorDeConexion()
+                    vista.errorDeConexion()
                 }
             }
-        } catch (e: Exception) {
-            // Maneja el error en caso de que ocurra una excepción
-            // Por ejemplo, puedes mostrar un mensaje de error en la vista
+        } catch (e: IOException) {
+            // Maneja específicamente los errores de red o de entrada/salida
             withContext(Dispatchers.Main) {
-                vista?.errorDeConexion()
+                vista.errorDeConexion()
+            }
+        } catch (e: Exception) {
+            // Maneja todas las otras excepciones
+            withContext(Dispatchers.Main) {
+                vista.errorDeConexion()
             }
         }
     }

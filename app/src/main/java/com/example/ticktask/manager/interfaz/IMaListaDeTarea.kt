@@ -10,4 +10,5 @@ interface IMaListaDeTarea: IMaVistas {
     suspend fun actualizarTarea(tarea: MdTarea)
     suspend fun ordenarTareas(idTarea: Int, idUsuario: MdUsuario, orderBy: Int, ascIrder: Boolean)
     suspend fun eliminarTarea(idTarea: Int)
+    suspend fun obtenerTodasLasTareas()
 }

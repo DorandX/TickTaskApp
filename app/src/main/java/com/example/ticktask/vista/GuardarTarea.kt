@@ -11,26 +11,26 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.R
 import com.example.ticktask.databinding.VerGuardarTareaBinding
-import com.example.ticktask.databinding.VerTareasBinding
 import com.example.ticktask.manager.MaDeGuardarTarea
 import com.example.ticktask.manager.interfaz.IMaDeGuardarTarea
 import com.example.ticktask.modelo.MdTarea
-import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.Info
 import com.example.ticktask.vista.interfaz.ViDeGuardarTarea
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.sql.Date
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
 class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
     private lateinit var guardarTarea: VerGuardarTareaBinding
-    private lateinit var verTarea: VerTareasBinding
     private var idTarea: Int = 0
-    private var idDeUsuario: MdUsuario?=null
+    private var idDeUsuario: Int=0
     private var controlador: IMaDeGuardarTarea = MaDeGuardarTarea()
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,18 +38,23 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
         guardarTarea = VerGuardarTareaBinding.inflate(layoutInflater)
         setContentView(guardarTarea.root)
         controlador.entrarAVista(this)
+        if(intent.hasExtra("ID_DE_USUARIO")) {
+            idDeUsuario=intent.getIntExtra("ID_DE_USUARIO", 0)
+        }
+        if(intent.hasExtra("ID_DE_TAREA")) {
+            idTarea=intent.getIntExtra("ID_DE_TAREA", 0)
+        }
         val btnFechaEntrega = guardarTarea.BtnDeEntregaDeTarea
         btnFechaEntrega.setOnClickListener {
             seleccionarFecha()
         }
         guardarTarea.BtnDeSalvarTarea.setOnClickListener {
-            // Llamar al método guardarTarea()
             guardarTarea()
         }
         guardarTarea.EstadoDeTarea.setOnClickListener {
             seleccionarEstado()
         }
-        guardarTarea.BtnDeEntregaDeTarea.setOnClickListener{
+        guardarTarea.BtnDeEntregaDeTarea.setOnClickListener {
             seleccionarFecha()
         }
         guardarTarea.PrioridadDeTarea.setOnClickListener {
@@ -81,13 +86,13 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
         }
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
-                Info.errorDeConexion(this@GuardarTarea, )
+                Info.errorDeConexion(this@GuardarTarea)
             }
         }.invokeOnCompletion { verProcesarDatos(false) }
     }
 
-    override fun existeLaTarea() {
-        Toast.makeText(this,"La tarea, ya exise", Toast.LENGTH_SHORT).show()
+    override fun existeLaTarea(tarea: MdTarea) {
+        Toast.makeText(this, "La tarea, ya exise", Toast.LENGTH_SHORT).show()
     }
 
     /**
@@ -138,41 +143,56 @@ class GuardarTarea : AppCompatActivity(), ViDeGuardarTarea {
                 Info.mostrarMensaje(this, "Debe llenar los campos obligatorios")
             }
         } else {
-            val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val fechaEntrega = formatoFecha.parse(fechaEntregaText)
+            try {
+                val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val fechaEntrega = formatoFecha.parse(fechaEntregaText)
 
-            verProcesarDatos(true)
-            lifecycleScope.launch(Dispatchers.Main) {
-                withContext(Dispatchers.IO) {
-                    MdTarea(
-                        idTarea,
-                        idDeUsuario!!,
-                        titulo,
-                        descripcion,
-                        prioridad,
-                        estado,
-                        fechaEntrega as Date?
-                    )
 
-                    }
+                verProcesarDatos(true)
+                val tarea = MdTarea(
+                    idTarea,
+                    idDeUsuario,
+                    titulo,
+                    descripcion,
+                    prioridad,
+                    estado,
+                    fechaEntrega
+                )
+                lifecycleScope.launch(Dispatchers.IO) {
+                    controlador.guardarTareaEnMemoria(tarea)
                 }
+                tareaGuardada(tarea)
+            } catch (ex: ParseException) {
+                runOnUiThread {
+                    Info.mostrarMensaje(this@GuardarTarea, "error en el formato de la fecha de entrega")
+                }
+                verProcesarDatos(false)
             }
         }
+    }
 
+    /**
+     * Si el usuario edita la tarea, este actualiza los nuevos datos colocados y los guarda.
+     */
+    override fun tareaGuardada(tarea: MdTarea) {
+        Info.mostrarMensaje(this, "Tarea guardada correctamente")
+        val irATareas = Intent(this, Tareas::class.java)
+        startActivity(irATareas)
+        finish()
+    }
 
-            /**
-             * Si el usuario edita la tarea, este actualiza los nuevos datos colocados y los guarda.
-             */
-
-            private fun verProcesarDatos(estaCargando: Boolean) {
-                if (estaCargando) {
-                    guardarTarea.cargandoTarea.visibility = View.VISIBLE
-                    guardarTarea.BtnDeSalvarTarea.visibility = View.GONE
-                } else {
-                    guardarTarea.BtnDeSalvarTarea.visibility = View.VISIBLE
-                    guardarTarea.cargandoTarea.visibility = View.GONE
-                }
-            }
-
+    private fun verProcesarDatos(estaCargando: Boolean) {
+        if (estaCargando) {
+            guardarTarea.cargandoTarea.visibility = View.VISIBLE
+            guardarTarea.BtnDeSalvarTarea.visibility = View.GONE
+        } else {
+            guardarTarea.BtnDeSalvarTarea.visibility = View.VISIBLE
+            guardarTarea.cargandoTarea.visibility = View.GONE
         }
+    }
+    override fun finalizarActividad() {
+        finish()
+    }
+
+}
 

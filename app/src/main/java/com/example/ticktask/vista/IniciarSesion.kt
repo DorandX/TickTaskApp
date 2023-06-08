@@ -12,6 +12,7 @@ import com.example.ticktask.databinding.VerIniciarSesionBinding
 import com.example.ticktask.manager.ManagerDeInicio
 import com.example.ticktask.manager.interfaz.IMaInicio
 import com.example.ticktask.memoria.GestionDeDatos
+import com.example.ticktask.modelo.MdUsuario
 import com.example.ticktask.utilidades.Info
 import com.example.ticktask.vista.interfaz.ViDeInicio
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,7 @@ import kotlinx.coroutines.withContext
 class IniciarSesion : AppCompatActivity(), ViDeInicio {
     private lateinit var binding: VerIniciarSesionBinding
     private var gestion: IMaInicio = ManagerDeInicio()
-
+    private lateinit var idUsuario: MdUsuario
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -53,8 +54,9 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
     //Metodo que guarda la sesión del usuario.
     private fun iniciarSesion() {
         val preferencias = this.getPreferences(Context.MODE_PRIVATE) ?: return
-        val email = preferencias.getString("EMAIL", "")
-        val clave = preferencias.getString("CLAVE", "")
+        val email = preferencias.getString("EMAIL", "") ?: " "
+        val clave = preferencias.getString("CLAVE", "") ?: " "
+
         if (email != null && clave != null) {
             binding.EtqDeEmail.setText(email)
             binding.EdtClave.setText(clave)

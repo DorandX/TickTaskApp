@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 class ManagerDeRegistro : IMaRegistro {
 
     private var vista: ViDeRegistro? = null
+    private lateinit var usuario: MdUsuario
     val dbManager: GestionDeDatos = GestionDeDatos.getInstance(AppContextProvider.getContext())
 
     //Metodo para asociar manager con la interfaz
@@ -31,15 +32,15 @@ class ManagerDeRegistro : IMaRegistro {
         withContext(Dispatchers.Main) {
             when (existeUsuario) {
                 null -> {
-                    //si hay error de conexion con la base de datos
+                    // si hay error de conexión con la base de datos
                     vista?.errorEnConexion()
                 }
                 true -> {
-                    //si el usuario ya existe
-                    vista?.existeElUsuario()
+                    // si el usuario ya existe
+                    vista?.existeElUsuario(usuario)
                 }
                 else -> {
-                    //si el usuario no existe
+                    // si el usuario no existe
                     vista?.guardarUsuario()
                 }
             }
@@ -52,7 +53,7 @@ class ManagerDeRegistro : IMaRegistro {
         withContext(Dispatchers.Main) {
             if (noHayError) {
                 //si no hay error al registral el usuario
-                vista?.usuarioAgregadoExitoso()
+                vista?.usuarioGuardado(usuario)
             } else {
                 vista?.errorEnConexion()
             }

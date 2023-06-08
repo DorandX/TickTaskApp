@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
@@ -19,7 +20,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ticktask.R
 import com.example.ticktask.adaptador.AdTarea
-import com.example.ticktask.databinding.VerGuardarTareaBinding
 import com.example.ticktask.databinding.VerItemDeTareaBinding
 import com.example.ticktask.databinding.VerTareasBinding
 import com.example.ticktask.manager.MaListaDeTareas
@@ -45,6 +45,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
     private lateinit var verLista: VerTareasBinding
     private lateinit var verTareas: VerItemDeTareaBinding
     private lateinit var idDeUsuario: MdUsuario
+    private lateinit var tarea: MdTarea
     private var controlador: IMaListaDeTarea = MaListaDeTareas()
 
 
@@ -55,16 +56,18 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
     private lateinit var adaptador: AdTarea
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         verLista = VerTareasBinding.inflate(layoutInflater)
+        verTareas= VerItemDeTareaBinding.inflate(layoutInflater)
         setContentView(verLista.root)
         controlador.entrarAVista(this)
-        deslizar()
         val layoutManager = LinearLayoutManager(this)
         verLista.entradaItemsTareas.layoutManager = layoutManager
         adaptador= AdTarea(ldTareas,this)
+        mostrarTodasLasTareas(ldTareas)
         verLista.entradaItemsTareas.adapter= adaptador
         verLista.ordenPorEstado.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -79,7 +82,6 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
-
         verLista.nuevaTarea.setOnClickListener {
             //Nos dirigiremos a la pantalla de nueva tarea
             val irACrearTarea = Intent(this, GuardarTarea::class.java)
@@ -110,6 +112,9 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         verLista.BtnOrdenAsc.setOnClickListener { ordenarEntrada() }
         verLista.BtnOrdenDesc.setOnClickListener{
             cargarOrdenDeTareas()
+        }
+        verLista.entradaItemsTareas.setOnClickListener {
+            actualizarTarea(tarea)
         }
 
 
@@ -190,7 +195,7 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         verCargarDatos(true)
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
-                idDeUsuario?.let {
+                idDeUsuario.let {
                     controlador.ordenarTareas(
                         idTarea, it, Variables.ITEM_TITULO,
                         verLista.BtnOrdenAsc.visibility == View.VISIBLE
@@ -228,37 +233,13 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
         }
     }
 
-
-
-    override fun actualizarTarea() {
-        val titulo = verTareas.TituloDeTarea.text.toString()
-        val descripcion = verTareas.DescripcionDeTarea.text.toString()
-        val prioridad = verTareas.Prioridad.text.toString()
-        val estado = verTareas.Estado.text.toString()
-
-        // Obtener la fecha de entrega seleccionada
-        val fechaEntregaText = verTareas.BtnDeEntrega.text.toString()
-
-        if (titulo.isNullOrEmpty() || estado.isNullOrEmpty() || fechaEntregaText.isNullOrEmpty()) {
+    override fun actualizarTarea(tarea: MdTarea) {
+        if (tarea.titulo.isEmpty() && tarea.estado.isEmpty() && tarea.entrega.toString().isEmpty()) {
             runOnUiThread {
                 Info.mostrarMensaje(this, "Debe llenar los campos obligatorios")
             }
         } else {
-            val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-
             try {
-                val fechaEntrega = formatoFecha.parse(fechaEntregaText)
-
-                val tarea = MdTarea(
-                    idTarea,
-                    idDeUsuario,
-                    titulo,
-                    descripcion,
-                    prioridad,
-                    estado,
-                    fechaEntrega as Date?
-                )
-
                 lifecycleScope.launch(Dispatchers.Main) {
                     withContext(Dispatchers.IO) {
                         controlador.actualizarTarea(tarea)
@@ -334,5 +315,16 @@ class Tareas : AppCompatActivity(), ViDeListaDeTareas {
                 Info.errorDeConexion(this@Tareas)
             }
         }.invokeOnCompletion { verCargarDatos(false) }
+    }
+
+    override fun mostrarTodasLasTareas(tareas: ArrayList<MdTarea>) {
+        // limpia la lista de tareas actual
+        ldTareas.clear()
+
+        // agrega todas las nuevas tareas a la lista
+        ldTareas.addAll(tareas)
+
+        // notifica al adaptador que los datos han cambiado
+        adaptador.notifyDataSetChanged()
     }
 }

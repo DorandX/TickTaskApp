@@ -3,6 +3,8 @@ package com.example.ticktask.memoria
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.example.ticktask.memoria.Datos.APELLIDO_DE_USUARIO
 import com.example.ticktask.memoria.Datos.CLAVE_DE_USUARIO
 import com.example.ticktask.memoria.Datos.CREAR_TABLA_DE_TAREA
@@ -24,6 +26,7 @@ import com.example.ticktask.memoria.Datos.TELEFONO_DE_USUARIO
 import com.example.ticktask.modelo.MdTarea
 import com.example.ticktask.modelo.MdUsuario
 import java.sql.*
+import java.time.LocalDate
 import java.util.ArrayList
 
 class GestionDeDatos private constructor(contexto: Context): SQLiteOpenHelper(contexto,
@@ -243,9 +246,10 @@ override fun onCreate(db: SQLiteDatabase) {
      * Para crear la tarea, solicitamos info de la tarea a publicar,
      * segun ello se añade a la memoria según los datos colocados en los campos.
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     fun crearTarea(nTarea: MdTarea): Boolean {
         var stmt: PreparedStatement? = null
-        var idDeUsuario = nTarea.idDeUsuario.idUsuario
+        var idDeUsuario = nTarea.idDeUsuario
         var noError = true
         try {
             val query =
@@ -257,7 +261,7 @@ override fun onCreate(db: SQLiteDatabase) {
             stmt?.setString(4, nTarea.descripcion)
             stmt?.setString(5, nTarea.prioridad)
             stmt?.setString(6, nTarea.estado)
-            stmt?.setDate(7, nTarea.entrega)
+            stmt?.setDate(7, nTarea.entrega as Date?)
             stmt?.executeUpdate()
         } catch (ex: SQLException) {
             noError = false
@@ -304,9 +308,10 @@ override fun onCreate(db: SQLiteDatabase) {
     /**
      * si existe la tarea, pues ordenamos por id, y salen todos los datos.
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     fun ordenarTareaSegunId(
         idTarea: Int,
-        idDeUsuario: MdUsuario,
+        idDeUsuario: Int,
         order: String? = null,
         ascOrder: Boolean = true
     ): ArrayList<MdTarea>? {
@@ -316,21 +321,23 @@ override fun onCreate(db: SQLiteDatabase) {
         try {
             val query =
                 ("SELECT $ID_DE_TAREA, $ID_DE_PROPIETARIO, $TITULO_DE_TAREA, $DESCRIPCION_DE_TAREA, $ESTADO_DE_TAREA, $ENTREGA_DE_TAREA " +
-                        "FROM $TABLA_DE_TAREA WHERE $ID_DE_TAREA = ?")
+                        "FROM $TABLA_DE_TAREA WHERE $ID_DE_TAREA = $idTarea")
             val orderBy = if (ascOrder) "ASC" else "DESC"
             val orderByClause = if (order != null) " ORDER BY $order $orderBy" else ""
             val finalQuery = query + orderByClause
 
             preparedStatement = conexion?.prepareStatement(finalQuery)
-            preparedStatement?.setInt(1, idTarea)
             resultSet = preparedStatement?.executeQuery()
 
             tareas = ArrayList<MdTarea>()
             while (resultSet?.next() == true) {
+                val fechaEntregaComoTexto = resultSet.getString(ENTREGA_DE_TAREA)
+                val fechaEntrega = LocalDate.parse(fechaEntregaComoTexto)
+
                 tareas.add(
                     MdTarea(
                         resultSet.getInt(ID_DE_TAREA),
-                        idDeUsuario,
+                        resultSet.getInt(idDeUsuario),
                         resultSet.getString(TITULO_DE_TAREA),
                         resultSet.getString(DESCRIPCION_DE_TAREA),
                         resultSet.getString(PRIORIDAD),
@@ -348,6 +355,7 @@ override fun onCreate(db: SQLiteDatabase) {
         return tareas
     }
 
+
     /**
      * Si el usuario ha deslizado y quiere editar,
      * se realizan las actualizaciones para que se guarden luego en memoria.
@@ -358,19 +366,12 @@ override fun onCreate(db: SQLiteDatabase) {
         var preparedStatement: PreparedStatement? = null
         var noHayError = true
         try {
-            val query = ("UPDATE $TABLA_DE_TAREA SET $TITULO_DE_TAREA = ?, " +
-                    "$DESCRIPCION_DE_TAREA = ?, $PRIORIDAD = ?, " +
-                    "$ESTADO_DE_TAREA = ?, $ENTREGA_DE_TAREA = ? " +
-                    "WHERE $ID_DE_TAREA = ? AND $ID_DE_PROPIETARIO = ?")
+            val query = ("UPDATE $TABLA_DE_TAREA SET $TITULO_DE_TAREA = ${tarea.titulo}, " +
+                    "$DESCRIPCION_DE_TAREA = ${tarea.descripcion}, $PRIORIDAD = ${tarea.prioridad}, " +
+                    "$ESTADO_DE_TAREA = ${tarea.estado}, $ENTREGA_DE_TAREA = ${tarea.entrega} " +
+                    "WHERE $ID_DE_TAREA = ${tarea.idDeTarea}AND $ID_DE_PROPIETARIO = ${tarea.idDeUsuario}")
 
             preparedStatement = conexion?.prepareStatement(query)
-            preparedStatement?.setString(1, tarea.titulo)
-            preparedStatement?.setString(2, tarea.descripcion)
-            preparedStatement?.setString(3, tarea.prioridad)
-            preparedStatement?.setString(4, tarea.estado)
-            preparedStatement?.setDate(5, tarea.entrega)
-            preparedStatement?.setInt(6, tarea.idDeTarea)
-            preparedStatement?.setInt(7, tarea.idDeUsuario.idUsuario)
             preparedStatement?.executeUpdate()
         } catch (ex: SQLException) {
             noHayError = false
@@ -379,6 +380,42 @@ override fun onCreate(db: SQLiteDatabase) {
             preparedStatement?.close()
         }
         return noHayError
+    }
+    /**
+     * Muestra todas las tareas existentes.
+     */
+    fun mostrarTodasLasTareas(): ArrayList<MdTarea>? {
+        var preparedStatement: PreparedStatement? = null
+        var resultSet: ResultSet? = null
+        var tareas: ArrayList<MdTarea>? = null
+        try {
+            val query = ("SELECT $ID_DE_TAREA, $ID_DE_PROPIETARIO, $TITULO_DE_TAREA, $DESCRIPCION_DE_TAREA, $PRIORIDAD, $ESTADO_DE_TAREA, $ENTREGA_DE_TAREA " +
+                    "FROM $TABLA_DE_TAREA")
+
+            preparedStatement = conexion?.prepareStatement(query)
+            resultSet = preparedStatement?.executeQuery()
+
+            tareas = ArrayList<MdTarea>()
+            while (resultSet?.next() == true) {
+                tareas.add(
+                    MdTarea(
+                        resultSet.getInt(ID_DE_TAREA),
+                        resultSet.getInt(ID_DE_PROPIETARIO),
+                        resultSet.getString(TITULO_DE_TAREA),
+                        resultSet.getString(DESCRIPCION_DE_TAREA),
+                        resultSet.getString(PRIORIDAD),
+                        resultSet.getString(ESTADO_DE_TAREA),
+                        resultSet.getDate(ENTREGA_DE_TAREA)
+                    )
+                )
+            }
+        } catch (ex: SQLException) {
+            ex.printStackTrace()
+        } finally {
+            preparedStatement?.close()
+            resultSet?.close()
+        }
+        return tareas
     }
 
     /**
