@@ -1,62 +1,84 @@
 package com.example.ticktask.vista
 
-import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerIniciarSesionBinding
-import com.example.ticktask.manager.ManagerDeInicio
-import com.example.ticktask.manager.interfaz.IMaInicio
-import com.example.ticktask.modelo.MdUsuario
-import com.example.ticktask.vista.interfaz.ViDeInicio
+import com.example.ticktask.controlador.CntrlUsuario
+import com.example.ticktask.controlador.itemEnMemoriaDeUsuario
+import com.example.ticktask.memoria.TickTaskProvider
+import com.example.ticktask.modelo.Usuario
+import com.example.ticktask.vista.interfaz.InInicio
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.ParseException
 
-class IniciarSesion : AppCompatActivity(), ViDeInicio {
-    private lateinit var binding: VerIniciarSesionBinding
-    private var gestion: IMaInicio = ManagerDeInicio()
-    private lateinit var idUsuario: MdUsuario
+class IniciarSesion : AppCompatActivity(), InInicio {
+    private lateinit var inicio: VerIniciarSesionBinding
+    private val controlador: CntrlUsuario by viewModels {
+        itemEnMemoriaDeUsuario((application as TickTaskProvider).memoriaDeUsuario)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-        binding = VerIniciarSesionBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        gestion.entrarAVista(this)
+        inicio = VerIniciarSesionBinding.inflate(layoutInflater)
+        setContentView(inicio.root)
+        inicio.BtnDeInicio.setOnClickListener { iniciarSesion() }
+    }
 
-        binding.BtnDeInicio.setOnClickListener {
-            cargarDatos(true)
-            lifecycleScope.launch(Dispatchers.Main) {
-                withContext(Dispatchers.IO) {
-                    gestion.esUnUsuarioValido(
-                        binding.EtqDeEmail.text.toString(),
-                        binding.EdtClave.text.toString()
-                    )
-                    iniciarSesion()
-                }
-            }.invokeOnCompletion { cargarDatos(false) }
-        }
+    private fun iniciarSesion() {
+        val email = inicio.InEtqDeEmail.text.toString()
+        val clave = inicio.InEtqDeClave.text.toString()
+        val usuario = Usuario(0, email, clave)
 
-        binding.BtnDeRegistro.setOnClickListener {
-            startActivity(Intent(this, Registro::class.java))
-            finish()
+        if (email.isNullOrEmpty() || clave.isNullOrEmpty()) {
+            Toast.makeText(this, "Por favor, ingrese todos los datos.", Toast.LENGTH_SHORT).show()
+            return
+        } else {
+            guardarUsuario()
+
         }
     }
 
+    /**
+    cargarInicio(true)
+    controlador.validarUsuario(email, clave) { usuarioValido ->
+    if (usuarioValido) {
+    startActivity(Intent(this, Tareas::class.java))
+    } else {
+    cargarDatos(false)
+    Toast.makeText(this, "Lo siento, usuario no encontrado.", Toast.LENGTH_SHORT).show()
+    }
+    }
+    }
+     */
+    override fun salir() {
+        finishActivity(0)
+    }
 
-    //Metodo que guarda la sesión del usuario.
-    private fun iniciarSesion() {
-        val preferencias = this.getPreferences(Context.MODE_PRIVATE) ?: return
-        val email = preferencias.getString("EMAIL", "") ?: " "
-        val clave = preferencias.getString("CLAVE", "") ?: " "
+    override fun errorDeConexion() {
+        runOnUiThread {
+            Toast.makeText(
+                this@IniciarSesion,
+                "Lo siento, usuario no encontrado.",
+                Toast.LENGTH_SHORT
+            ).show()
+            cargarDatos(false)
+        }
+    }
 
-        if (email != null && clave != null) {
-            binding.EtqDeEmail.setText(email)
-            binding.EdtClave.setText(clave)
+    override fun conexionExitosa() {
+        runOnUiThread {
+            Toast.makeText(this@IniciarSesion, "Bienvenido de nuevo", Toast.LENGTH_SHORT)
+                .show()
+            cargarDatos(true)
         }
     }
 
@@ -64,33 +86,74 @@ class IniciarSesion : AppCompatActivity(), ViDeInicio {
     //Método que activa el progreso de carga de datos o muestra opciones registro, recuperar contraseña.
     private fun cargarDatos(mostrarCarga: Boolean) {
         if (mostrarCarga) {
-            binding.cargandoInicio.visibility = View.VISIBLE
-            binding.VerRegistrar.visibility = View.GONE
+            inicio.BtnDeInicio.visibility = View.VISIBLE
+            inicio.BtnDeRegistro.visibility = View.GONE
         } else {
-            binding.cargandoInicio.visibility = View.GONE
-            binding.VerRegistrar.visibility = View.VISIBLE
+            inicio.BtnDeInicio.visibility = View.GONE
+            inicio.BtnDeRegistro.visibility = View.VISIBLE
         }
     }
 
-    override fun errorEnConexion() {
-        lifecycleScope.launch(Dispatchers.Main) {
-            withContext(Dispatchers.IO) {
-                Toast.makeText(this@IniciarSesion, "Error de conexion", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }.invokeOnCompletion { cargarDatos(false) }
+    private fun cargarInicio(mostrarCarga: Boolean) {
+        if (mostrarCarga) {
+            inicio.BtnDeInicio.visibility = View.GONE
+            inicio.cargandoInicio.visibility = View.VISIBLE
+        }
+        inicio.BtnDeInicio.visibility = View.VISIBLE
+        inicio.cargandoInicio.visibility = View.GONE
     }
 
-    override fun esUnUsuarioValido(idUsuario: String, uClave: String) {
+    private fun cargarRegistro(mostrarCarga: Boolean) {
+        if (mostrarCarga) {
+            inicio.BtnDeRegistro.visibility = View.GONE
+            inicio.BtnDeInicio.visibility = View.GONE
+            inicio.cargandoInicio.visibility = View.VISIBLE
+        }
+        inicio.BtnDeRegistro.visibility = View.VISIBLE
+        inicio.BtnDeInicio.visibility = View.GONE
+        inicio.cargandoInicio.visibility = View.GONE
+    }
+
+    override fun guardarUsuario() {
+        val email = inicio.InEtqDeEmail.text.toString()
+        val clave = inicio.InEtqDeClave.text.toString()
+        val usuario = Usuario(0, email, clave)
+        if (email.isNullOrEmpty() && clave.isNullOrEmpty()) {
+            runOnUiThread {
+                Toast.makeText(
+                    this@IniciarSesion,
+                    "Faltan elementos por rellenar",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        } else {
+            try {
+                val usuario = Usuario(0, email, clave)
+                lifecycleScope.launch(Dispatchers.IO) {
+                    controlador.crearUsuario(usuario)
+                }
+                usuarioGuardado(usuario)
+            } catch (ex: ParseException) {
+                Toast.makeText(
+                    this@IniciarSesion,
+                    "Error, no se ha podido guardar",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    override fun usuarioGuardado(usuario: Usuario) {
+        Toast.makeText(this@IniciarSesion, "Guardado exitosamente", Toast.LENGTH_SHORT)
+            .show()
         val irATareas = Intent(this, Tareas::class.java)
-        irATareas.putExtra("ID_DE_USUARIO", idUsuario)
         startActivity(irATareas)
         finish()
     }
-
-    override fun esUnUsuarioNoValido() {
-        Toast.makeText(this@IniciarSesion, "Es un usuario valido", Toast.LENGTH_SHORT)
-            .show()
-        cargarDatos(false)
-    }
 }
+
+
+
+
+
+

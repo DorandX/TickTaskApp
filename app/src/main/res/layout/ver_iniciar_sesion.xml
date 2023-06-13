@@ -43,88 +43,70 @@
             android:layout_width="match_parent"
             android:layout_height="10dp" />
 
-        <EditText
-            android:id="@+id/EtqDeEmail"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutEmail"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/vc_escribir"
-            android:ems="10"
-            android:hint="@string/emailDeUsuario"
-            android:inputType="textEmailAddress"
-            android:minHeight="48dp" />
+            android:hint="@string/emailDeUsuario" >
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/InEtqDeEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:minHeight="48dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="5dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutClave"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/ClaveDeUsuario"
+            app:passwordToggleEnabled="true"
+            app:passwordToggleTint="@color/azulito">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/InEtqDeClave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:minHeight="48dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
         <Space
             android:layout_width="match_parent"
             android:layout_height="10dp" />
 
-        <EditText
-            android:id="@+id/EdtClave"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="@string/ClaveDeUsuario"
-            android:inputType="textPassword"
-            android:minHeight="48dp" />
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="20dp" />
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/BtnDeInicio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="Inicio"
             android:text="@string/iniciarSesion"
-            android:textStyle="bold"
-            app:cornerRadius="7dp"
-            android:backgroundTint="@color/verdecito"/>
-
+            android:backgroundTint="@color/verdecito"
+            android:transitionName="registerButtonTransition" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/BtnDeRegistro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:text="@string/registrarUsuario"
+            android:backgroundTint="@color/azulito"
+            android:visibility="gone"
+            android:transitionName="registerButtonTransition" />
         <ProgressBar
             android:id="@+id/cargandoInicio"
             style="?android:attr/progressBarStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"/>
-
-        <LinearLayout
-            android:id="@+id/VerRegistrar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:orientation="vertical">
-
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="20dp" />
-
-            <TextView
-                android:id="@+id/MensajeDeRecuperarClave"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:minHeight="30dp"
-                android:text="@string/recuperarClave"
-                android:textAlignment="center"
-                android:textColor="@color/azulito"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                />
-
-
-                <Button
-                    android:id="@+id/BtnDeRegistro"
-                    android:layout_width="match_parent"
-                    android:layout_height="54dp"
-                    android:layout_weight="1"
-                    android:text="@string/registrarUsuario"
-                    android:textAlignment="viewStart"
-                    android:textStyle="bold"
-                    app:cornerRadius="7dp"
-                    app:icon="@drawable/vc_registro"
-                    android:backgroundTint="@color/azulito"/>
-
-        </LinearLayout>
 
     </LinearLayout>
 

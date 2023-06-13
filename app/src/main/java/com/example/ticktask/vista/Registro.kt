@@ -6,124 +6,102 @@ import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerRegistroBinding
-import com.example.ticktask.manager.ManagerDeRegistro
-import com.example.ticktask.manager.interfaz.IMaRegistro
-import com.example.ticktask.modelo.MdUsuario
-import com.example.ticktask.vista.interfaz.ViDeRegistro
+import com.example.ticktask.controlador.CntrlUsuario
+import com.example.ticktask.controlador.itemEnMemoriaDeUsuario
+import com.example.ticktask.memoria.TickTaskProvider
+import com.example.ticktask.modelo.Usuario
+import com.example.ticktask.vista.interfaz.InUsuario
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.ParseException
 
-class Registro : AppCompatActivity(), ViDeRegistro {
+class Registro : AppCompatActivity(), InUsuario{
 
-    private lateinit var binding: VerRegistroBinding
+    private lateinit var registro: VerRegistroBinding
     private var idUsuario: Int = 0
-    private var gestion: IMaRegistro = ManagerDeRegistro()
+    private val controlador: CntrlUsuario by viewModels {
+        itemEnMemoriaDeUsuario((application as TickTaskProvider).memoriaDeUsuario)
+    }
 
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-        binding = VerRegistroBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        gestion.entrarAVista(this)
-        val email = binding.etxEmail.text.toString()
-        val clave = binding.etxClave.text.toString()
-        binding.btnUnirme.setOnClickListener {
-            if (validarCampos()) {
-                cargandoDatos(true)
-                lifecycleScope.launch(Dispatchers.Main) {
-                    withContext(Dispatchers.IO) {
-                        gestion.verificarSiExisteUsuario(email, clave)
-                    }
-                }.invokeOnCompletion {
-                    cargandoDatos(false)
-                    guardarUsuario()
-                }
-            }
+        registro = VerRegistroBinding.inflate(layoutInflater)
+        setContentView(registro.root)
+        registro.btnUnirme.setOnClickListener {
+            cargarDatos(true)
+            guardarUsuario()
         }
     }
 
-    private fun validarCampos(): Boolean {
-        val nombre = binding.txtNombre.text.toString()
-        val apellido = binding.txApellido.text.toString()
-        val email = binding.etxEmail.text.toString()
-        val telefono = binding.etxMovil.text.toString().toInt()
-        val clave = binding.etxClave.text.toString()
-        var camposValidos = true
-        if (nombre.isEmpty() && apellido.isEmpty() && email.isEmpty() && telefono.toString()
-                .isEmpty() && clave.isEmpty()
-        ) {
-            Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT)
-                .show()
-            camposValidos = false
-        }
 
-        return camposValidos
-    }
-
-    private fun cargandoDatos(mostrarCarga: Boolean) {
+    private fun cargarDatos(mostrarCarga: Boolean) {
         if (mostrarCarga) {
-            binding.cargandoRegistro.visibility = View.VISIBLE
-            binding.tvEstasListo.visibility = View.GONE
+            registro.cargandoRegistro.visibility = View.VISIBLE
+            registro.tvEstasListo.visibility = View.GONE
         } else {
-            binding.cargandoRegistro.visibility = View.GONE
-            binding.tvEstasListo.visibility = View.VISIBLE
+            registro.cargandoRegistro.visibility = View.GONE
+            registro.tvEstasListo.visibility = View.VISIBLE
         }
     }
 
-    override fun errorEnConexion() {
+
+    override fun conexionExitosa() {
+        runOnUiThread {
+            Toast.makeText(this@Registro, "Bienvenido de nuevo", Toast.LENGTH_SHORT).show()
+            cargarDatos(true)
+
+        }    }
+
+    override fun errorDeConexion() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 Toast.makeText(this@Registro, "Ningún elemento seleccionado", Toast.LENGTH_SHORT)
                     .show()
             }
-        }.invokeOnCompletion { cargandoDatos(false) }
-    }
-
-    override fun existeElUsuario(usuario: MdUsuario) {
-        Toast.makeText(this, "El usuario, ya exise", Toast.LENGTH_SHORT).show()
+        }.invokeOnCompletion { cargarDatos(false) }
     }
 
 
     override fun guardarUsuario() {
-        val nombre = binding.txtNombre.text.toString()
-        val apellido = binding.txApellido.text.toString()
-        val email = binding.etxEmail.text.toString()
-        val telefono = binding.etxMovil.text.toString().toInt()
-        val clave = binding.etxClave.text.toString()
+        val nombre = registro.txtNombre.text.toString()
+        val apellido = registro.txApellido.text.toString()
+        val email = registro.etxEmail.text.toString()
+        val telefonoString = registro.etxMovil.text.toString()
+        val clave = registro.etxClave.text.toString()
 
-        if (nombre.isNullOrEmpty() || apellido.isNullOrEmpty() || email.isNullOrEmpty() || clave.isNullOrEmpty()) {
+        if (email.isNullOrEmpty() && clave.isNullOrEmpty()) {
             runOnUiThread {
-                Toast.makeText(this@Registro, "Faltan elementos por rellenar", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(this@Registro, "Faltan elementos por rellenar", Toast.LENGTH_SHORT).show()
             }
         } else {
-            try {
-                val usuario = MdUsuario(
-                    idUsuario,
-                    nombre,
-                    apellido,
-                    email,
-                    telefono,
-                    clave
-                )
-                lifecycleScope.launch(Dispatchers.IO) {
-                    gestion.agregarUsuario(usuario)
+            val telefono = telefonoString.toInt()
+            if (telefono == null) {
+                runOnUiThread {
+                    Toast.makeText(this@Registro, "El número de teléfono no es válido", Toast.LENGTH_SHORT).show()
                 }
-                usuarioGuardado(usuario)
-            } catch (ex: ParseException) {
-                Toast.makeText(this@Registro, "Error, no se ha podido guardar", Toast.LENGTH_SHORT)
-                    .show()
+            } else {
+                try {
+                    val usuario = Usuario(idUsuario, email, clave)
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        controlador.crearUsuario(usuario)
+                    }
+                    usuarioGuardado(usuario)
+                } catch (ex: ParseException) {
+                    Toast.makeText(this@Registro, "Error, no se ha podido guardar", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
-    override fun usuarioGuardado(usuario: MdUsuario) {
+
+    override fun usuarioGuardado(usuario: Usuario) {
         Toast.makeText(this@Registro, "Guardado exitosamente", Toast.LENGTH_SHORT)
             .show()
         val irATareas = Intent(this, Tareas::class.java)

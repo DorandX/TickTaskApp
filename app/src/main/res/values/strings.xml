@@ -29,5 +29,7 @@
     <string name="GuardarClave">ACTUALIZAR</string>
     <string name="NuevaClaveDeUsuario">Nueva clave</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="EliminarTarea">ELIMINAR</string>
+    <string name="Volver">Volver</string>
+
 </resources>

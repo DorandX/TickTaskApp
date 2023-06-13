@@ -1,24 +1,28 @@
 package com.example.ticktask.vista
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.ticktask.databinding.VerCuentaBinding
-import com.example.ticktask.manager.MaDeCuenta
-import com.example.ticktask.manager.interfaz.IMaDeCuenta
-import com.example.ticktask.modelo.MdUsuario
-import com.example.ticktask.vista.interfaz.ViDeCuenta
+import com.example.ticktask.controlador.CntrlUsuario
+import com.example.ticktask.controlador.itemEnMemoriaDeUsuario
+import com.example.ticktask.memoria.TickTaskProvider
+import com.example.ticktask.modelo.Usuario
+import com.example.ticktask.vista.interfaz.InCuenta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class Cuenta : AppCompatActivity(), ViDeCuenta {
+class Cuenta : AppCompatActivity(), InCuenta {
     private lateinit var verCuenta: VerCuentaBinding
-    private lateinit var usuario: MdUsuario
-    private var controlador: IMaDeCuenta= MaDeCuenta()
+    private val controlador: CntrlUsuario by viewModels {
+        itemEnMemoriaDeUsuario((application as TickTaskProvider).memoriaDeUsuario)
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,16 +30,20 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         verCuenta= VerCuentaBinding.inflate(layoutInflater)
         setContentView(verCuenta.root)
-        controlador.entrarAVista(this)
         verCuenta.BtnDeSalir.setOnClickListener {
             mostrarCargandoSalida(true)
-            controlador.salirDeVista()
+            salir()
         }
         verCuenta.BtnDeBaja.setOnClickListener{
-            darDeBajaUsuarioCorrectamente()
+            darDeBajaAUsuario()
         }
-        verCuenta.BtnDeCambiarClave.setOnClickListener(){
-            actualizarContraseñaCorrectamente()
+        verCuenta.BtnDeCambiarClave.setOnClickListener{
+            actualizarContraseña()
+            conexionExitosa()
+        }
+        verCuenta.BtnDeVolver.setOnClickListener{
+            startActivity(Intent(this, Tareas::class.java))
+            finish()
         }
     }
 
@@ -50,25 +58,29 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
 
     }
 
+    override fun conexionExitosa() {
+        runOnUiThread {
+            Toast.makeText(this@Cuenta, "Bienvenido de nuevo", Toast.LENGTH_SHORT).show()
 
-    override fun darDeBajaUsuarioCorrectamente() {
+        }
+    }
+
+
+    override fun darDeBajaAUsuario() {
         val uEmail = verCuenta.etxNombre.text.toString()
         val uClave = verCuenta.EdtsClave.text.toString()
-
+        val usuario = Usuario(0,uEmail,uClave)
         if (uEmail.isNotEmpty() && uClave.isNotEmpty()) {
             cargandoBaja(true)
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
-                    controlador.darDeBajaAUsuario(uEmail, uClave)
+                    controlador.eliminarUsuario(usuario)
                     withContext(Dispatchers.Main) {
                         // manejar la lógica de éxito aquí
-                        controlador.salirDeVista()
-                        finish()
+                        salir()
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
-                        // manejar la lógica de falla aquí
-                        // Mostrar el error al usuario
                         Toast.makeText(this@Cuenta, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -78,9 +90,15 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
         }
     }
 
-    override fun actualizarContraseñaCorrectamente() {
+    override fun salir() {
+       finishActivity(0)
+    }
+
+    override fun actualizarContraseña() {
+        var email= verCuenta.etxEmail.text.toString()
         var nClave= verCuenta.EdtNuevaClave.text.toString()
         var rClave= verCuenta.EdtRepetirNuevaClave.text.toString()
+        val usuario =Usuario(0,email,nClave)
         verCuenta.BtnDeCambiarClave.setOnClickListener {
             mostrarCargandoNuevaClave(true)
 
@@ -89,7 +107,7 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
                 && nClave.equals(rClave)){
                 lifecycleScope.launch(Dispatchers.Main){
                     withContext(Dispatchers.IO){
-                        controlador.actualizarContraseña(nClave,rClave)
+                        controlador.actualizarUsuario(usuario)
                     }
                 }.invokeOnCompletion { mostrarCargandoNuevaClave(false) }
             }  else{
@@ -128,9 +146,5 @@ class Cuenta : AppCompatActivity(), ViDeCuenta {
             verCuenta.BtnDeCambiarClave.visibility= View.VISIBLE
             verCuenta.CargandoProcesos.visibility=View.GONE
         }
-    }
-
-    override fun finalizarVista() {
-        finish()
     }
 }

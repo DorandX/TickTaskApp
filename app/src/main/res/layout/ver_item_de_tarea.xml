@@ -35,7 +35,9 @@
             android:contentDescription="estadoCompletado"
             android:scaleX="1.2"
             android:scaleY="1.2"
-            android:src="@drawable/vc_tic" />
+            android:src="@drawable/vc_tic"
+            android:visibility="gone" />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -49,8 +51,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingRight="5dp"
-                android:textSize="22dp"
-                android:text="@string/TituloDeTarea" />
+                android:text="@string/TituloDeTarea"
+                android:textSize="22dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -84,16 +86,16 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="42dp"
-                        android:layout_weight="1"
                         android:layout_marginStart="5dp"
-                        android:layout_marginEnd="2.5dp">
+                        android:layout_marginEnd="2.5dp"
+                        android:layout_weight="1">
 
                         <AutoCompleteTextView
                             android:id="@+id/Estado"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textSize="16dp"
-                            android:hint="@string/EstadoDeTarea" />
+                            android:hint="@string/EstadoDeTarea"
+                            android:textSize="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -101,34 +103,50 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="42dp"
-                        android:layout_weight="1"
                         android:layout_marginStart="2.5dp"
-                        android:layout_marginEnd="5dp">
+                        android:layout_marginEnd="5dp"
+                        android:layout_weight="1">
 
                         <AutoCompleteTextView
                             android:id="@+id/Prioridad"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textSize="16dp"
-                            android:hint="@string/PrioridadDeTarea" />
+                            android:hint="@string/PrioridadDeTarea"
+                            android:textSize="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/BtnDeEntrega"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/BtnDeEntrega"
                     android:layout_width="156dp"
                     android:layout_height="43dp"
                     android:layout_marginStart="5dp"
                     android:layout_marginEnd="5dp"
                     android:backgroundTint="@color/azulin"
                     android:drawableEnd="@drawable/vc_calendario"
-                    android:textSize="14dp"
-                    android:text="@string/FechaDeEntrega" />
+                    android:text="@string/FechaDeEntrega"
+                    android:textSize="14dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/BtnDeEliminar"
+                        android:layout_width="156dp"
+                        android:layout_height="43dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginEnd="5dp"
+                        android:backgroundTint="@color/fusion"
+                        android:drawableEnd="@drawable/vc_eliminar"
+                        android:text="@string/EliminarTarea"
+                        android:textSize="14dp" />
+                </LinearLayout>
 
             </LinearLayout>
-
 
         </LinearLayout>
     </LinearLayout>

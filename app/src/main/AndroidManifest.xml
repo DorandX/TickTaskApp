@@ -7,7 +7,7 @@
 
     <application
         android:enableOnBackInvokedCallback="true"
-        android:name=".memoria.AppContextProvider"
+        android:name=".memoria.TickTaskProvider"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"

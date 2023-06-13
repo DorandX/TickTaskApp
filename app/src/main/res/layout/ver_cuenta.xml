@@ -94,7 +94,8 @@
                 android:drawableEnd="@drawable/vc_logout"
                 android:text="@string/DarDeBaja"
                 android:textColor="@color/white"
-                android:textSize="12dp" />
+                android:textSize="12dp"
+                tools:ignore="TextSizeCheck,TouchTargetSizeCheck" />
 
             <ProgressBar
                 android:id="@+id/CargandoProcesos"
@@ -107,13 +108,14 @@
                 android:id="@+id/BtnDeCambiarClave"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:layout_weight="1"
                 android:layout_marginStart="8dp"
+                android:layout_weight="1"
                 android:backgroundTint="@color/azulito"
                 android:drawableEnd="@drawable/vc_clave"
                 android:text="@string/CambiarClave"
                 android:textColor="@color/white"
-                android:textSize="12dp" />
+                android:textSize="12dp"
+                tools:ignore="TextSizeCheck,TouchTargetSizeCheck" />
         </LinearLayout>
 
         <Space
@@ -173,34 +175,51 @@
             android:layout_height="10dp" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end"
             android:orientation="horizontal">
 
-            <View
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:layout_height="104dp"
+                android:layout_weight="1"
+                android:gravity="start">
 
-            <ProgressBar
-                android:id="@+id/CargandoSalida"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:visibility="gone" />
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/BtnDeVolver"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/verdecito"
+                    android:clickable="true"
+                    android:contentDescription="@string/Volver"
+                    app:srcCompat="@drawable/vc_back" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/BtnDeSalir"
-                style="@style/AppTheme.FloatingActionButton"
-                android:layout_width="match_parent"
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:clickable="true"
-                android:contentDescription="@string/CerrarSesion"
-                app:srcCompat="@drawable/vc_exit" />
+                android:gravity="end">
+
+                <ProgressBar
+                    android:id="@+id/CargandoSalida"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/BtnDeSalir"
+                    style="@style/AppTheme.FloatingActionButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:contentDescription="@string/CerrarSesion"
+                    app:srcCompat="@drawable/vc_exit" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
 
+    </LinearLayout>
 </LinearLayout>
